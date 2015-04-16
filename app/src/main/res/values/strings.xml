@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Read4Me</string>
+    <string name="read_lang">Choose the language you want to read</string>
+    <string name="button_send">Start</string>
+    <string name="action_settings">Settings</string>
+
+    <string-array name="lang_array">
+        <item>English</item>
+        <item>Spanish</item>
+        <item>French</item>
+        <item>Italian</item>
+        <item>German</item>
+        <item>Portuguese</item>
+    </string-array>
+
+    <string name="btn_realt">Read in real time</string>
+    <string name="btn_loadp">Load Picture</string>
+    <string name="btn_takepic">Take Picture</string>
+    <string name="title_activity_menu">Choose your action</string>
+
+</resources>

@@ -1,0 +1,34 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin">
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_realt"
+        android:onClick="callRealTime"
+        android:id="@+id/btn_realt"
+        android:layout_above="@+id/btn_loadp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_loadp"
+        android:onClick="callLoadPicture"
+        android:id="@+id/btn_loadp"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="@dimen/activity_horizontal_margin"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Take Picture"
+        android:id="@+id/btn_takepic"
+        android:layout_below="@+id/btn_loadp"
+        android:layout_marginTop="@dimen/activity_horizontal_margin"/>
+
+</RelativeLayout>
