@@ -49,11 +49,11 @@ public class MenuActivity extends ActionBarActivity {
 
     public void callRealTime(View v){
         //DO SOMETHING
-        Toast.makeText(this, "Called real time", Toast.LENGTH_LONG);
+        Toast.makeText(this, "Called real time", Toast.LENGTH_LONG).show();
     }
 
-    public void callLoadPicture(){
+    public void callLoadPicture(View v){
         //DO SOMETHING
-        Toast.makeText(this, "Called load picture", Toast.LENGTH_LONG);
+        Toast.makeText(this, "Called load picture", Toast.LENGTH_LONG).show();
     }
 }
