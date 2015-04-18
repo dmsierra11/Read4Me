@@ -3,6 +3,7 @@ package com.example.danielsierraf.read4me;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,9 +13,13 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+
 
 public class MainActivity extends ActionBarActivity {
 
+    public final static String TAG = "MainActivity";
     public final static String EXTRA_LANG_READ = "com.example.danielsierraf.LANG_READ";
     public final static String EXTRA_LANG_HEAR = "com.example.danielsierraf.LANG_HEAR";
 
@@ -22,12 +27,33 @@ public class MainActivity extends ActionBarActivity {
     private Spinner spinner1;
     private Spinner spinner2;
 
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i(TAG, "OpenCV loaded successfully");
+                    //mOpenCvCameraView.enableView();
+                    //mOpenCvCameraView.setOnTouchListener(ColorBlobDetectionActivity.this);
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                    Log.e(TAG, "Opencv not loaded successfully");
+                } break;
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         locale = this.getResources().getConfiguration().locale.getDisplayName();
 
         setContentView(R.layout.activity_main);
+
+        System.loadLibrary("opencv_java");
 
         spinner1 = (Spinner) findViewById(R.id.spinner1);
         spinner2 = (Spinner) findViewById(R.id.spinner2);
