@@ -1,8 +1,13 @@
 package com.example.danielsierraf.read4me;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
@@ -11,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.net.Uri;
+import android.widget.Toast;
 
 
 public class EditPicActivity extends ActionBarActivity {
@@ -21,6 +27,8 @@ public class EditPicActivity extends ActionBarActivity {
 
     private Uri mUri;
     private String mDataPath;
+    private final int PIC_CROP = 1;
+    private ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +37,7 @@ public class EditPicActivity extends ActionBarActivity {
         final Intent intent = getIntent();
         mUri = intent.getParcelableExtra(EXTRA_PHOTO_URI);
         mDataPath = intent.getStringExtra(EXTRA_PHOTO_DATA_PATH);
-        final ImageView imageView = new ImageView(this);
+        imageView = new ImageView(this);
         //ImageView imageView = (ImageView) findViewById(R.id.imageEdit);
         imageView.setImageURI(mUri);
         setContentView(imageView);
@@ -49,6 +57,9 @@ public class EditPicActivity extends ActionBarActivity {
             case R.id.menu_delete:
                 deletePhoto();
                 return true;
+            case R.id.menu_crop:
+                performCrop();
+                return true;
             case R.id.menu_edit:
                 editPhoto();
                 return true;
@@ -56,6 +67,51 @@ public class EditPicActivity extends ActionBarActivity {
             default: return
 
             super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PIC_CROP) {
+            if (data != null) {
+                // get the returned data
+                Bundle extras = data.getExtras();
+                // get the cropped bitmap
+                Bitmap selectedBitmap = extras.getParcelable("data");
+
+                imageView.setImageBitmap(selectedBitmap);
+            }
+        }
+
+    }
+
+    private void performCrop(){
+        try {
+
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            // indicate image type and Uri
+            cropIntent.setDataAndType(mUri, "image/*");
+            // set crop properties
+            cropIntent.putExtra("crop", "true");
+            // indicate aspect of desired crop
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            // indicate output X and Y
+            cropIntent.putExtra("outputX", 128);
+            cropIntent.putExtra("outputY", 128);
+            // retrieve data on return
+            cropIntent.putExtra("return-data", true);
+            // start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, PIC_CROP);
+        }
+        // respond to users whose devices do not support the crop action
+        catch (ActivityNotFoundException e) {
+            // display an error message
+            String errorMessage = "Whoops - your device doesn't support the crop action!";
+            Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
         }
     }
 

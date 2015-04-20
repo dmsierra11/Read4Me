@@ -29,5 +29,6 @@
     <string name="photo_send_extra_subject">Subject</string>
     <string name="photo_send_extra_text">Message</string>
     <string name="photo_send_chooser_title">Share picture?</string>
+    <string name="crop">Crop</string>
 
 </resources>
