@@ -2,6 +2,7 @@ package com.example.danielsierraf.read4me;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
@@ -18,8 +19,8 @@ import org.opencv.highgui.Highgui;
 
 public class MenuActivity extends ActionBarActivity {
 
-    private static final String TAG = "MenuActivity";
-    private static final int SELECT_PICTURE = 1;
+    private final String TAG = "MenuActivity";
+    private final int SELECT_PICTURE = 1;
 
     private String lang_read;
     private String lang_hear;
@@ -70,23 +71,35 @@ public class MenuActivity extends ActionBarActivity {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent,
-                "Select Picture"), SELECT_PICTURE);
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.select_pic)),
+                SELECT_PICTURE);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             if (requestCode == SELECT_PICTURE) {
-                Uri selectedImageUri = (Uri) data.getData();
-                selectedImagePath = getPath(selectedImageUri);
 
-                Toast.makeText(this, selectedImagePath, Toast.LENGTH_LONG).show();
-                Log.d(TAG, selectedImagePath);
+                Uri selectedImageUri = (Uri) data.getData();
+                selectedImagePath = new ImageHandler(getApplicationContext()).getImagePath(selectedImageUri);
+
+                Bitmap selectedBitmap = null;
+                //selectedBitmap = (Bitmap) data.getParcelableExtra("data");
+                try {
+                    selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
+                } catch (Exception e){
+                    Log.e(TAG, "Image not found");
+                    e.printStackTrace();
+                }
+
+
+                /* OPENCV
                 Mat img = Highgui.imread(selectedImagePath, 0);
                 //Mat grey = new Mat();
 
                 //fixPhoto(img.getNativeObjAddr(), grey.getNativeObjAddr());
                 //filterImage(img.getNativeObjAddr(), grey.getNativeObjAddr());
+                */
+
 
                 //Open the photo in anoter Activity.
                 Intent intent = new Intent(this, EditPicActivity.class);
@@ -97,24 +110,4 @@ public class MenuActivity extends ActionBarActivity {
         }
     }
 
-    public String getPath(Uri uri) {
-        // just some safety built in
-        if( uri == null ) {
-            // TODO perform some logging or show user feedback
-            return null;
-        }
-        // try to retrieve the image from the media store first
-        // this will only work for images selected from gallery
-        String[] projection = { MediaStore.Images.Media.DATA };
-        //Cursor cursor = managedQuery(uri, projection, null, null, null);
-        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
-        if( cursor != null ){
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        }
-        // this is our fallback here
-        return uri.getPath();
-    }
 }

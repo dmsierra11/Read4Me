@@ -27,4 +27,5 @@
     <string name="edit">Editar</string>
     <string name="share">Compartir</string>
     <string name="crop">Cortar</string>
+    <string name="select_pic">Seleccione foto</string>
 </resources>

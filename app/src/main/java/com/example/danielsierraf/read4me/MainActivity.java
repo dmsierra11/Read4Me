@@ -19,11 +19,13 @@ import org.opencv.android.LoaderCallbackInterface;
 
 public class MainActivity extends ActionBarActivity {
 
-    public final static String TAG = "MainActivity";
     public final static String EXTRA_LANG_READ = "com.example.danielsierraf.LANG_READ";
     public final static String EXTRA_LANG_HEAR = "com.example.danielsierraf.LANG_HEAR";
 
     public static String locale;
+
+    private final String TAG = "MainActivity";
+
     private Spinner spinner1;
     private Spinner spinner2;
 

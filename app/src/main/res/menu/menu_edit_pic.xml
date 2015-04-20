@@ -9,11 +9,6 @@
         app:showAsAction ="ifRoom|withText"
         android:title ="@string/delete" />
     <item
-        android:id="@+id/menu_crop"
-        android:orderInCategory="100"
-        app:showAsAction="ifRoom|withText"
-        android:title="@string/crop"/>
-    <item
         android:id ="@+id/menu_edit"
         android:orderInCategory ="100"
         app:showAsAction ="ifRoom|withText"

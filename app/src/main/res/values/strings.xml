@@ -19,6 +19,7 @@
     <string name="btn_loadp">Load Picture</string>
     <string name="btn_takepic">Take Picture</string>
     <string name="title_activity_menu">Choose your action</string>
+    <string name="select_pic">Select Picture</string>
     <string name="title_activity_edit_pic">Edit Picture</string>
     <string name="photo_delete_prompt_title">Delete picture</string>
     <string name="photo_delete_prompt_message">Delete picture?</string>
