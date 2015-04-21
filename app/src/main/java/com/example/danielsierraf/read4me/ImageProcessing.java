@@ -5,6 +5,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
@@ -27,13 +28,16 @@ public class ImageProcessing {
     public void otsuThreshold(String path){
         Mat src = Highgui.imread(path, 0);
         Mat threshold = new Mat();
-        Imgproc.threshold(src, threshold, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
-        writeImage(src);
+        Mat blur = new Mat();
+        //blur = cv2.GaussianBlur(img,(5,5),0)
+        Imgproc.GaussianBlur(src, blur, new Size(5,5), 0);
+        Imgproc.threshold(blur, threshold, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
+        writeImage(threshold);
     }
 
     public boolean writeImage(Mat src){
         //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        String filename = "threshold0.png";
+        String filename = "threshold0-Gauss.png";
         //File file = new File(pic_path, filename);
         //File file = new File(new FileHandler().getAlbumPublicStorageDir("Read4Me"), filename);
         File file = new File(new FileHandler().getExternalStorageDir(appName), filename);
