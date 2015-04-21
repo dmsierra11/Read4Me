@@ -1,5 +1,6 @@
 package com.example.danielsierraf.read4me;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -16,13 +17,10 @@ import android.widget.Toast;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 
+import java.io.File;
+
 
 public class MainActivity extends ActionBarActivity {
-
-    public final static String EXTRA_LANG_READ = "com.example.danielsierraf.LANG_READ";
-    public final static String EXTRA_LANG_HEAR = "com.example.danielsierraf.LANG_HEAR";
-
-    public static String locale;
 
     private final String TAG = "MainActivity";
 
@@ -51,7 +49,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        locale = this.getResources().getConfiguration().locale.getDisplayName();
+        //locale = this.getResources().getConfiguration().locale.getDisplayName();
 
         setContentView(R.layout.activity_main);
 
@@ -98,6 +96,10 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public Activity getActivity(){
+        return this;
+    }
+
     // Add spinner data
     public void addListenerOnSpinnerItemSelection(){
         spinner1.setOnItemSelectedListener(new CustomOnItemSelectedListener());
@@ -124,10 +126,10 @@ public class MainActivity extends ActionBarActivity {
 
     public void sendMessage(View view){
         Intent intent = new Intent(this, MenuActivity.class);
-        String lang_read = String.valueOf(spinner1.getSelectedItem());
-        String lang_hear = String.valueOf(spinner2.getSelectedItem());
-        intent.putExtra(EXTRA_LANG_READ, lang_read);
-        intent.putExtra(EXTRA_LANG_HEAR, lang_hear);
+        String lang_read = String.valueOf(spinner1.getSelectedItemPosition());
+        String lang_hear = String.valueOf(spinner2.getSelectedItemPosition());
+        FileHandler.setDefaults(getString(R.string.lang_read), lang_read, getApplicationContext());
+        FileHandler.setDefaults(getString(R.string.lang_hear), lang_hear, getApplicationContext());
         startActivity(intent);
     }
 }

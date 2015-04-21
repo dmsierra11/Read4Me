@@ -148,6 +148,10 @@ public class EditPicActivity extends ActionBarActivity {
 
     public void readText(View v){
         new ImageProcessing(getApplicationContext()).otsuThreshold(mDataPath);
+        String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), getApplicationContext());
+        String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), getApplicationContext());
+        Log.d(TAG, "Reading in "+lang_read);
+        Log.d(TAG, "Hearing "+lang_hear);
     }
 
 }

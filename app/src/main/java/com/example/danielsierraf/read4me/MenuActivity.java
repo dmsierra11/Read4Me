@@ -1,10 +1,7 @@
 package com.example.danielsierraf.read4me;
 
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,27 +10,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
-
 
 public class MenuActivity extends ActionBarActivity {
 
     private final String TAG = "MenuActivity";
     private final int SELECT_PICTURE = 1;
 
-    private String lang_read;
-    private String lang_hear;
     private String selectedImagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-
-        Intent intent = getIntent();
-        lang_read = intent.getStringExtra(MainActivity.EXTRA_LANG_READ);
-        lang_hear = intent.getStringExtra(MainActivity.EXTRA_LANG_HEAR);
     }
 
 
@@ -81,25 +69,6 @@ public class MenuActivity extends ActionBarActivity {
 
                 Uri selectedImageUri = (Uri) data.getData();
                 selectedImagePath = new ImageHandler(getApplicationContext()).getImagePath(selectedImageUri);
-
-                Bitmap selectedBitmap = null;
-                //selectedBitmap = (Bitmap) data.getParcelableExtra("data");
-                try {
-                    selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
-                } catch (Exception e){
-                    Log.e(TAG, "Image not found");
-                    e.printStackTrace();
-                }
-
-
-                /* OPENCV
-                Mat img = Highgui.imread(selectedImagePath, 0);
-                //Mat grey = new Mat();
-
-                //fixPhoto(img.getNativeObjAddr(), grey.getNativeObjAddr());
-                //filterImage(img.getNativeObjAddr(), grey.getNativeObjAddr());
-                */
-
 
                 //Open the photo in anoter Activity.
                 Intent intent = new Intent(this, EditPicActivity.class);

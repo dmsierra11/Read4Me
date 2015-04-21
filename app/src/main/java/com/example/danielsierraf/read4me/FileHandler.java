@@ -1,7 +1,10 @@
 package com.example.danielsierraf.read4me;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
@@ -10,6 +13,20 @@ import java.io.File;
  * Created by danielsierraf on 4/20/15.
  */
 public class FileHandler {
+
+    private Context appContext;
+
+    public FileHandler(){
+
+    }
+
+    public FileHandler(Context context){
+        appContext = context;
+    }
+
+    public void setAppContext(Context context){
+        appContext = context;
+    }
 
     private static final String TAG = "FileHandler";
 
@@ -68,6 +85,18 @@ public class FileHandler {
             Log.e(TAG, "Directory not created");
         }
         return file;
+    }
+
+    public static void setDefaults(String key, String value, Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(key, value);
+        editor.commit();
+    }
+
+    public static String getDefaults(String key, Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getString(key, null);
     }
 
 }

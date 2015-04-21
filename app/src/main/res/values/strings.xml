@@ -2,7 +2,8 @@
 <resources>
 
     <string name="app_name">Read4Me</string>
-    <string name="read_lang">Choose the language you want to read</string>
+    <string name="read_lang_chooser">Choose the language you want to read</string>
+    <string name="hear_lang_chooser">Choose the language you want to hear</string>
     <string name="button_send">Start</string>
     <string name="action_settings">Settings</string>
 
@@ -32,5 +33,6 @@
     <string name="photo_send_chooser_title">Share picture?</string>
     <string name="crop">Crop</string>
     <string name="read_text">Read</string>
-
+    <string name="lang_read">lang_read</string>
+    <string name="lang_hear">lang_hear</string>
 </resources>
