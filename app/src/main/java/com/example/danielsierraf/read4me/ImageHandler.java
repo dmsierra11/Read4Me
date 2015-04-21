@@ -50,4 +50,5 @@ public class ImageHandler {
         // this is our fallback here
         return uri.getPath();
     }
+
 }

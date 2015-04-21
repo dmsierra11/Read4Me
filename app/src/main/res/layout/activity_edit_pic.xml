@@ -5,8 +5,30 @@
     tools:context="com.example.danielsierraf.read4me.EditPicActivity">
 
     <ImageView
-        android:id="@+id/imageEdit"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_bar_read"
+        android:id="@+id/img_to_edit"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:id="@+id/bottom_bar_read"
+        android:background="#3E4E76">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="fill_vertical|end"
+            android:id="@+id/btn_read_text"
+            android:paddingRight="@dimen/activity_vertical_margin"
+            android:paddingEnd="@dimen/activity_vertical_margin"
+            android:onClick="readText"
+            android:text="@string/read_text"
+            android:background="#3E4E76"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
 
 </RelativeLayout>

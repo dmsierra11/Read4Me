@@ -3,12 +3,14 @@ package com.example.danielsierraf.read4me;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.Image;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.net.Uri;
 
@@ -29,14 +31,17 @@ public class EditPicActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_edit_pic);
 
         final Intent intent = getIntent();
-        imageView = new ImageView(this);
+        //imageView = new ImageView(this);
+        imageView = (ImageView) findViewById(R.id.img_to_edit);
         mUri = intent.getParcelableExtra(EXTRA_PHOTO_URI);
         mDataPath = intent.getStringExtra(EXTRA_PHOTO_DATA_PATH);
         imageView.setImageURI(mUri);
 
-        setContentView(imageView);
+        //setContentView(imageView);
+
     }
 
     @Override
@@ -77,12 +82,13 @@ public class EditPicActivity extends ActionBarActivity {
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        //setContentView(R.layout.activity_edit_pic);
         // Restore UI state from the savedInstanceState.
         // This bundle has also been passed to onCreate.
         mUri = savedInstanceState.getParcelable("uri");
         mDataPath = savedInstanceState.getString("photo_path");
         imageView.setImageURI(mUri);
-        setContentView(imageView);
+        //setContentView(imageView);
     }
 
     @Override
@@ -91,10 +97,11 @@ public class EditPicActivity extends ActionBarActivity {
         if (resultCode == RESULT_OK) {
             if (requestCode == PIC_EDIT) {
                 if (data != null) {
+                    //setContentView(R.layout.activity_edit_pic);
                     mUri = (Uri) data.getData();
                     mDataPath = new ImageHandler(getApplicationContext()).getImagePath(mUri);
                     imageView.setImageURI(mUri);
-                    setContentView(imageView);
+                    //setContentView(imageView);
                 }
             }
         }
@@ -137,6 +144,10 @@ public class EditPicActivity extends ActionBarActivity {
         intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.photo_send_extra_subject));
         intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.photo_send_extra_text));
         startActivity( Intent.createChooser(intent, getString(R.string.photo_send_chooser_title)));
+    }
+
+    public void readText(View v){
+        new ImageProcessing(getApplicationContext()).otsuThreshold(mDataPath);
     }
 
 }

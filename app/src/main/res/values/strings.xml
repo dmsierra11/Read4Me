@@ -31,5 +31,6 @@
     <string name="photo_send_extra_text">Message</string>
     <string name="photo_send_chooser_title">Share picture?</string>
     <string name="crop">Crop</string>
+    <string name="read_text">Read</string>
 
 </resources>

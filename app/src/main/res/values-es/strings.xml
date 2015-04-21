@@ -28,4 +28,5 @@
     <string name="share">Compartir</string>
     <string name="crop">Cortar</string>
     <string name="select_pic">Seleccione foto</string>
+    <string name="read_text">Leer</string>
 </resources>

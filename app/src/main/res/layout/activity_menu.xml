@@ -26,7 +26,7 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Take Picture"
+        android:text="@string/btn_takepic"
         android:id="@+id/btn_takepic"
         android:layout_below="@+id/btn_loadp"
         android:layout_marginTop="@dimen/activity_horizontal_margin"/>
