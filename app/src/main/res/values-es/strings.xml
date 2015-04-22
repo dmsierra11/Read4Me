@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Read4Me</string>
-    <string name="read_lang">Escoja el idioma que desea leer</string>
     <string name="button_send">Comencemos</string>
     <string name="action_settings">Configuración</string>
     <string-array name="lang_array">
@@ -29,4 +28,6 @@
     <string name="crop">Cortar</string>
     <string name="select_pic">Seleccione foto</string>
     <string name="read_text">Leer</string>
+    <string name="hear_lang_chooser">Escoja el idioma que desea escuchar</string>
+    <string name="read_lang_chooser">Escoja el idioma que desea leer</string>
 </resources>

@@ -1,8 +1,10 @@
 package com.example.danielsierraf.read4me;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.Image;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
@@ -147,11 +149,16 @@ public class EditPicActivity extends ActionBarActivity {
     }
 
     public void readText(View v){
-        new ImageProcessing(getApplicationContext()).otsuThreshold(mDataPath);
-        String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), getApplicationContext());
-        String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), getApplicationContext());
+        Context context = getApplicationContext();
+        new ImageProcessing(context).otsuThreshold(mDataPath);
+        String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
+        String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
         Log.d(TAG, "Reading in "+lang_read);
         Log.d(TAG, "Hearing "+lang_hear);
+        Bitmap bmp = new ImageHandler(context).getBitmapFromUri(mUri);
+        Log.d(TAG, "Bitmap: "+bmp);
+        String text = new OCR(context).recognizeText(bmp);
+        Log.d(TAG, "Text: "+text);
     }
 
 }
