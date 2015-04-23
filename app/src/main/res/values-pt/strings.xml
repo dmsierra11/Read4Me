@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="read_lang_chooser">Escolha o idioma que você quer ler</string>
+    <string name="hear_lang_chooser">Escolha o idioma que você quer ouvir</string>
+    <string name="button_send">começo</string>
+    <string name="action_settings">Definições</string>
+
+    <string-array name="lang_array">
+        <item>português</item>
+        <item>inglês</item>
+        <item>espanhol</item>
+        <item>francês</item>
+        <item>italiano</item>
+        <item>alemão</item>
+    </string-array>
+
+    <string name="btn_realt">Ler em tempo real</string>
+    <string name="btn_loadp">Carregar imagem</string>
+    <string name="btn_takepic">Tire Uma Foto</string>
+    <string name="title_activity_menu">Escolha a sua acção</string>
+    <string name="select_pic">Seleccione Imagem</string>
+    <string name="title_activity_edit_pic">Editar Imagem</string>
+    <string name="photo_delete_prompt_title">excluir imagem</string>
+    <string name="photo_delete_prompt_message">Excluir a foto ?</string>
+    <string name="delete">excluir</string>
+    <string name="edit">editar</string>
+    <string name="photo_edit_chooser_title">Editar Imagem</string>
+    <string name="share">ação</string>
+    <string name="photo_send_extra_subject">assunto</string>
+    <string name="photo_send_extra_text">mensagem</string>
+    <string name="photo_send_chooser_title">Compartilhar fotos ?</string>
+    <string name="crop">colheita</string>
+    <string name="read_text">ler</string>
+</resources>

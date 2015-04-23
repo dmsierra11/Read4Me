@@ -40,6 +40,7 @@ public class OCR {
 
     public void setLanguage(String _lang){
         lang = _lang;
+        initialize();
     }
 
     public String getLanguage(){

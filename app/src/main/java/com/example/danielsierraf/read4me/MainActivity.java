@@ -18,12 +18,18 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 
 import java.io.File;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
 
     private final String TAG = "MainActivity";
 
+    private String lang;
+    private String langISO3;
     private Spinner spinner1;
     private Spinner spinner2;
 
@@ -49,7 +55,10 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //locale = this.getResources().getConfiguration().locale.getDisplayName();
+        lang = this.getResources().getConfiguration().locale.getLanguage();
+        langISO3 = this.getResources().getConfiguration().locale.getISO3Language();
+        Log.d(TAG, "Language: "+lang);
+        Log.d(TAG, "Language ISO3: "+langISO3);
 
         setContentView(R.layout.activity_main);
 
@@ -124,10 +133,43 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    private String[] getLanguages(String type){
+        String langs[] = new String[]{"en", "es", "fr", "it", "de", "pt"};
+        String langsISO3[] = new String[]{"eng", "spa", "fra", "ita", "deu", "por"};
+        switch (type){
+            case "iso3":
+                if (langISO3 != "eng") {
+                    //Put phone default language first
+                    List<String> langsISO3List = new ArrayList<String>(Arrays.asList(langsISO3));
+                    langsISO3List.remove(langISO3);
+                    langsISO3List.add(0, langISO3);
+                    langsISO3 = langsISO3List.toArray(new String[6]);
+                }
+                return langsISO3;
+            default:
+                if (lang != "en"){
+                    //Put phone default language first
+                    List<String> langsList = new ArrayList<String>(Arrays.asList(langs));
+                    langsList.remove(lang);
+                    langsList.add(0, lang);
+                    langs = langsList.toArray(new String[6]);
+                }
+                return langs;
+        }
+    }
+
     public void sendMessage(View view){
         Intent intent = new Intent(this, MenuActivity.class);
         String lang_read = String.valueOf(spinner1.getSelectedItemPosition());
         String lang_hear = String.valueOf(spinner2.getSelectedItemPosition());
+        //int lang_hear = Integer.valueOf(spinner1.getSelectedItemPosition());
+        Log.d(TAG, "Language Pos: "+lang_read);
+        String[] langsForTess = getLanguages("iso3");
+        Log.d(TAG, "Language array ISO3: "+Arrays.toString(langsForTess));
+        lang_read = langsForTess[Integer.parseInt(lang_read)];
+        String languages[] = getLanguages("");
+        Log.d(TAG, "Language array:"+Arrays.toString(languages));
+        lang_hear = languages[Integer.parseInt(lang_hear)];
         FileHandler.setDefaults(getString(R.string.lang_read), lang_read, getApplicationContext());
         FileHandler.setDefaults(getString(R.string.lang_hear), lang_hear, getApplicationContext());
         startActivity(intent);

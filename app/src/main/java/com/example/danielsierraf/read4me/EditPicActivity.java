@@ -150,14 +150,20 @@ public class EditPicActivity extends ActionBarActivity {
 
     public void readText(View v){
         Context context = getApplicationContext();
+
         new ImageProcessing(context).otsuThreshold(mDataPath);
+
         String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
         String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
         Log.d(TAG, "Reading in "+lang_read);
         Log.d(TAG, "Hearing "+lang_hear);
+
         Bitmap bmp = new ImageHandler(context).getBitmapFromUri(mUri);
         Log.d(TAG, "Bitmap: "+bmp);
-        String text = new OCR(context).recognizeText(bmp);
+
+        OCR ocr = new OCR(context);
+        ocr.setLanguage(lang_read);
+        String text = ocr.recognizeText(bmp);
         Log.d(TAG, "Text: "+text);
     }
 
