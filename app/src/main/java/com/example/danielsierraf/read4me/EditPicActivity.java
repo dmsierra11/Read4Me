@@ -151,9 +151,9 @@ public class EditPicActivity extends ActionBarActivity {
         Context context = getApplicationContext();
 
         String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
-        String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
+        //String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
         Log.d(TAG, "Reading in "+lang_read);
-        Log.d(TAG, "Hearing "+lang_hear);
+        //Log.d(TAG, "Hearing "+lang_hear);
 
         ImageProcessing imageProcessing = new ImageProcessing(context);
         imageProcessing.setMatGray(mDataPath);
@@ -170,6 +170,10 @@ public class EditPicActivity extends ActionBarActivity {
         ocr.setLanguage(lang_read);
         String text = ocr.recognizeText(bmp);
         Log.d(TAG, "Text: "+text);
+
+        Intent intent = new Intent(this, TTSActivity.class);
+        intent.putExtra(TTSActivity.EXTRA_TEXT, text);
+        startActivity(intent);
     }
 
 }
