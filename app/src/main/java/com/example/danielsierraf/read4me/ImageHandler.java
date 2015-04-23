@@ -7,6 +7,9 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+
 /**
  * Created by danielsierraf on 4/20/15.
  */

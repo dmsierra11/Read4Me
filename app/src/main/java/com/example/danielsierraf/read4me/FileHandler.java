@@ -64,10 +64,25 @@ public class FileHandler {
     /*
         Creates public storage directory for the app
      */
-    public File getAlbumPublicStorageDir(String albumName) {
-        // Get the directory for the user's public pictures directory.
-        File file = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), albumName);
+    public File getAlbumPublicStorageDir(String albumName, String type) {
+        File file;
+        switch (type){
+            case "pictures":
+                // Get the directory for the user's public pictures directory.
+                file = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES), albumName);
+                break;
+            case "documents":
+                file = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOCUMENTS), albumName);
+                break;
+            default:
+                // Get the directory for the user's public pictures directory.
+                file = new File(Environment.getExternalStoragePublicDirectory(""), albumName);
+                break;
+
+        }
+
         if (!file.mkdirs()) {
             Log.e(TAG, "Directory not created");
         }

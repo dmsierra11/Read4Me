@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -151,14 +150,20 @@ public class EditPicActivity extends ActionBarActivity {
     public void readText(View v){
         Context context = getApplicationContext();
 
-        new ImageProcessing(context).otsuThreshold(mDataPath);
-
         String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
         String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
         Log.d(TAG, "Reading in "+lang_read);
         Log.d(TAG, "Hearing "+lang_hear);
 
-        Bitmap bmp = new ImageHandler(context).getBitmapFromUri(mUri);
+        ImageProcessing imageProcessing = new ImageProcessing(context);
+        imageProcessing.setMatGray(mDataPath);
+        //image = imageProcessing.resizeImage(3000, 3000);
+        //imageProcessing.resizeImage(2550, 2550);
+        imageProcessing.otsuThreshold();
+        Bitmap bmp = imageProcessing.getMatBitmap();
+        imageProcessing.writeImage();
+
+        //Bitmap bmp = new ImageHandler(context).getBitmapFromUri(mUri);
         Log.d(TAG, "Bitmap: "+bmp);
 
         OCR ocr = new OCR(context);
