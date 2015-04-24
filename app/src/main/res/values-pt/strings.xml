@@ -31,4 +31,9 @@
     <string name="photo_send_chooser_title">Compartilhar fotos ?</string>
     <string name="crop">colheita</string>
     <string name="read_text">ler</string>
+    <string name="app_name">Read4Me</string>
+    <string name="country_hear">country_hear</string>
+    <string name="lang_hear">lang_hear</string>
+    <string name="lang_read">lang_read</string>
+    <string name="title_activity_tts">TTSActivity</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ public class EditPicActivity extends ActionBarActivity {
     public static final String PHOTO_MIME_TYPE = "image/png";
     public static final String EXTRA_PHOTO_URI = "com.example.danielsierraf.EditPicActivity.PHOTO_URI";
     public static final String EXTRA_PHOTO_DATA_PATH = "com.example.danielsierraf.EditPicActivity.PHOTO_DATA_PATH";
+    public static final String EXTRA_ACTION = "com.example.danielsierraf.EditPicActivity.EXTRA_ACTION";
 
     private final int PIC_EDIT = 1;
     private static final String TAG = "EditPicActivity";
@@ -37,9 +39,19 @@ public class EditPicActivity extends ActionBarActivity {
         final Intent intent = getIntent();
         //imageView = new ImageView(this);
         imageView = (ImageView) findViewById(R.id.img_to_edit);
-        mUri = intent.getParcelableExtra(EXTRA_PHOTO_URI);
         mDataPath = intent.getStringExtra(EXTRA_PHOTO_DATA_PATH);
-        imageView.setImageURI(mUri);
+        int action = intent.getIntExtra(EXTRA_ACTION, 1);
+
+        Log.d(TAG, "ACTION: "+action);
+        //Log.d(TAG, "mUri "+ mUri);
+        if (action == 1) {
+            mUri = intent.getParcelableExtra(EXTRA_PHOTO_URI);
+            imageView.setImageURI(mUri);
+        } else {
+            mUri = null;
+            setPic();
+        }
+
 
         //setContentView(imageView);
 
@@ -174,6 +186,43 @@ public class EditPicActivity extends ActionBarActivity {
         Intent intent = new Intent(this, TTSActivity.class);
         intent.putExtra(TTSActivity.EXTRA_TEXT, text);
         startActivity(intent);
+    }
+
+    private void setPic() {
+
+		/* There isn't enough memory to open up more than a couple camera photos */
+		/* So pre-scale the target bitmap into which the file is decoded */
+
+		/* Get the size of the ImageView */
+        int targetW = imageView.getWidth();
+        int targetH = imageView.getHeight();
+
+		/* Get the size of the image */
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(mDataPath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+		/* Figure out which way needs to be reduced less */
+        int scaleFactor = 1;
+        if ((targetW > 0) || (targetH > 0)) {
+            scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+        }
+
+		/* Set bitmap options to scale the image decode target */
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+		/* Decode the JPEG file into a Bitmap */
+        Bitmap bitmap = BitmapFactory.decodeFile(mDataPath, bmOptions);
+
+		/* Associate the Bitmap to the ImageView */
+        imageView.setImageBitmap(bitmap);
+
+        //imageView.setVisibility(View.VISIBLE);
+        //mVideoView.setVisibility(View.INVISIBLE);
     }
 
 }

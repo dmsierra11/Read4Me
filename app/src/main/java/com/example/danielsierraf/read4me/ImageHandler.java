@@ -4,11 +4,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by danielsierraf on 4/20/15.
@@ -18,7 +24,12 @@ public class ImageHandler {
     private final String TAG = "ImageHandler";
     private Context appContext;
 
+    public ImageHandler(){}
     public ImageHandler(Context context){
+        appContext = context;
+    }
+
+    public void setContext(Context context){
         appContext = context;
     }
 

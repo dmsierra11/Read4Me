@@ -86,6 +86,7 @@ public class FileHandler {
         if (!file.mkdirs()) {
             Log.e(TAG, "Directory not created");
         }
+        Log.d(TAG, "File: "+file.toString());
         return file;
     }
 

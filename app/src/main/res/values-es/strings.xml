@@ -30,4 +30,8 @@
     <string name="read_text">Leer</string>
     <string name="hear_lang_chooser">Escoja el idioma que desea escuchar</string>
     <string name="read_lang_chooser">Escoja el idioma que desea leer</string>
+    <string name="country_hear">country_hear</string>
+    <string name="lang_hear">lang_hear</string>
+    <string name="lang_read">lang_read</string>
+    <string name="title_activity_tts">TTSActivity</string>
 </resources>

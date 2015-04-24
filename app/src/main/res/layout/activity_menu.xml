@@ -29,6 +29,7 @@
         android:text="@string/btn_takepic"
         android:id="@+id/btn_takepic"
         android:layout_below="@+id/btn_loadp"
-        android:layout_marginTop="@dimen/activity_horizontal_margin"/>
+        android:layout_marginTop="@dimen/activity_horizontal_margin"
+        android:onClick="callTakePicture"/>
 
 </RelativeLayout>

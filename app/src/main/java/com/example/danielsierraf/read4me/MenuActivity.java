@@ -2,6 +2,8 @@ package com.example.danielsierraf.read4me;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,13 +12,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 public class MenuActivity extends ActionBarActivity {
 
+    private static final String appName = "Read4Me";
+
     private final String TAG = "MenuActivity";
     private final int SELECT_PICTURE = 1;
+    private final int REQUEST_IMAGE_CAPTURE = 2;
 
-    private String selectedImagePath;
+    private String mCurrentPhotoPath;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +58,45 @@ public class MenuActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "RESULT CODE: "+resultCode);
+        switch (requestCode){
+            case REQUEST_IMAGE_CAPTURE:
+                if (resultCode == RESULT_OK) {
+                    Log.d(TAG, "Picture taken");
+
+                    //handleBigCameraPhoto();
+                    galleryAddPic();
+
+                    //Open the photo in anoter Activity.
+                    Intent intent = new Intent(this, EditPicActivity.class);
+                    intent.putExtra(EditPicActivity.EXTRA_PHOTO_DATA_PATH, mCurrentPhotoPath);
+                    intent.putExtra(EditPicActivity.EXTRA_ACTION, REQUEST_IMAGE_CAPTURE);
+                    startActivity(intent);
+                    //handleBigCameraPhoto();
+                }
+                break;
+            default:
+                if (resultCode == RESULT_OK) {
+                    Log.d(TAG, "Picture selected");
+
+                    Uri selectedImageUri = data.getData();
+                    String selectedImagePath = new ImageHandler(getApplicationContext()).getImagePath(selectedImageUri);
+
+                    //Open the photo in anoter Activity.
+                    Intent intent = new Intent(this, EditPicActivity.class);
+                    intent.putExtra(EditPicActivity.EXTRA_PHOTO_URI, selectedImageUri);
+                    intent.putExtra(EditPicActivity.EXTRA_PHOTO_DATA_PATH, selectedImagePath);
+                    intent.putExtra(EditPicActivity.EXTRA_ACTION, SELECT_PICTURE);
+                    startActivity(intent);
+                }
+                break;
+
+
+        }
+    }
+
     public void callRealTime(View v){
         //DO SOMETHING
         Toast.makeText(this, "Called real time", Toast.LENGTH_LONG).show();
@@ -63,20 +113,42 @@ public class MenuActivity extends ActionBarActivity {
                 SELECT_PICTURE);
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            if (requestCode == SELECT_PICTURE) {
+    public void callTakePicture(View v){
+        // create Intent to take a picture and return control to the calling application
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                Uri selectedImageUri = (Uri) data.getData();
-                selectedImagePath = new ImageHandler(getApplicationContext()).getImagePath(selectedImageUri);
+        File f = null;
 
-                //Open the photo in anoter Activity.
-                Intent intent = new Intent(this, EditPicActivity.class);
-                intent.putExtra(EditPicActivity.EXTRA_PHOTO_URI, selectedImageUri);
-                intent.putExtra(EditPicActivity.EXTRA_PHOTO_DATA_PATH, selectedImagePath);
-                startActivity(intent);
-            }
+        try {
+            f = createImageFile();
+            mCurrentPhotoPath = f.getPath();
+            Log.d(TAG, "PATH: "+mCurrentPhotoPath);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+        } catch (IOException e) {
+            e.printStackTrace();
+            mCurrentPhotoPath = null;
         }
+
+        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+
+        return image;
+    }
+
+    private void galleryAddPic() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File f = new File(mCurrentPhotoPath);
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
     }
 
 }
