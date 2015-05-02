@@ -31,4 +31,12 @@
             android:textColor="#FFFFFF"/>
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/progress"
+        style="@style/GenericProgressIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:visibility="gone" />
+
 </RelativeLayout>

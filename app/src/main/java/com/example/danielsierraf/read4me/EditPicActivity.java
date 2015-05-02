@@ -1,6 +1,7 @@
 package com.example.danielsierraf.read4me;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.net.Uri;
+import android.widget.ProgressBar;
 
 
 public class EditPicActivity extends ActionBarActivity {
@@ -166,6 +168,8 @@ public class EditPicActivity extends ActionBarActivity {
         //String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
         Log.d(TAG, "Reading in "+lang_read);
         //Log.d(TAG, "Hearing "+lang_hear);
+        //ProgressBar progressBar = (ProgressBar) findViewById(R.id.progress);
+        //progressBar.setVisibility(View.VISIBLE);
 
         ImageProcessing imageProcessing = new ImageProcessing(context);
         imageProcessing.setMatGray(mDataPath);
@@ -182,6 +186,7 @@ public class EditPicActivity extends ActionBarActivity {
         ocr.setLanguage(lang_read);
         String text = ocr.recognizeText(bmp);
         Log.d(TAG, "Text: "+text);
+        //progressBar.setVisibility(View.INVISIBLE);
 
         Intent intent = new Intent(this, TTSActivity.class);
         intent.putExtra(TTSActivity.EXTRA_TEXT, text);
@@ -189,38 +194,42 @@ public class EditPicActivity extends ActionBarActivity {
     }
 
     private void setPic() {
+        try {
 
 		/* There isn't enough memory to open up more than a couple camera photos */
 		/* So pre-scale the target bitmap into which the file is decoded */
 
 		/* Get the size of the ImageView */
-        int targetW = imageView.getWidth();
-        int targetH = imageView.getHeight();
+            int targetW = imageView.getWidth();
+            int targetH = imageView.getHeight();
 
 		/* Get the size of the image */
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(mDataPath, bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(mDataPath, bmOptions);
+            int photoW = bmOptions.outWidth;
+            int photoH = bmOptions.outHeight;
 
 		/* Figure out which way needs to be reduced less */
-        int scaleFactor = 1;
-        if ((targetW > 0) || (targetH > 0)) {
-            scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-        }
+            int scaleFactor = 1;
+            if ((targetW > 0) || (targetH > 0)) {
+                scaleFactor = Math.min(photoW / targetW, photoH / targetH);
+            }
 
 		/* Set bitmap options to scale the image decode target */
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
+            bmOptions.inJustDecodeBounds = false;
+            bmOptions.inSampleSize = scaleFactor;
+            bmOptions.inPurgeable = true;
 
 		/* Decode the JPEG file into a Bitmap */
-        Bitmap bitmap = BitmapFactory.decodeFile(mDataPath, bmOptions);
+            Bitmap bitmap = BitmapFactory.decodeFile(mDataPath, bmOptions);
 
 		/* Associate the Bitmap to the ImageView */
-        imageView.setImageBitmap(bitmap);
-
+            imageView.setImageBitmap(bitmap);
+        } catch (Exception e){
+            Log.e(TAG, "Error seteando la foto");
+            e.printStackTrace();
+        }
         //imageView.setVisibility(View.VISIBLE);
         //mVideoView.setVisibility(View.INVISIBLE);
     }

@@ -1,5 +1,6 @@
 package com.example.danielsierraf.read4me;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.speech.tts.TextToSpeech;

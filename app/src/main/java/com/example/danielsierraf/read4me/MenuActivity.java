@@ -99,7 +99,9 @@ public class MenuActivity extends ActionBarActivity {
 
     public void callRealTime(View v){
         //DO SOMETHING
-        Toast.makeText(this, "Called real time", Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, "Called real time", Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(this, ColorBlobDetectionActivity.class);
+        startActivity(intent);
     }
 
     public void callLoadPicture(View v){

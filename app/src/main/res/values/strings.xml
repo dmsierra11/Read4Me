@@ -37,4 +37,5 @@
     <string name="lang_hear">lang_hear</string>
     <string name="country_hear">country_hear</string>
     <string name="title_activity_tts">TTSActivity</string>
+    <string name="title_activity_color_detect">ColorBlobDetectionActivity</string>
 </resources>

@@ -47,8 +47,20 @@
                 android:value="com.example.danielsierraf.read4me.MenuActivity" />
         </activity>
         <activity
+            android:name=".ColorBlobDetectionActivity"
+            android:label="@string/title_activity_color_detect"
+            android:parentActivityName=".MenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.danielsierraf.read4me.MenuActivity" />
+        </activity>
+        <activity
             android:name=".TTSActivity"
-            android:label="@string/title_activity_tts" >
+            android:label="@string/title_activity_tts"
+            android:parentActivityName=".MenuActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.danielsierraf.read4me.MenuActivity" />
         </activity>
     </application>
 

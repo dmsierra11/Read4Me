@@ -46,23 +46,24 @@ public class ImageHandler {
 
     public String getImagePath(Uri uri) {
         // just some safety built in
-        if( uri == null ) {
+        try {
+            // try to retrieve the image from the media store first
+            // this will only work for images selected from gallery
+            String[] projection = { MediaStore.Images.Media.DATA };
+            //Cursor cursor = managedQuery(uri, projection, null, null, null);
+            Cursor cursor = appContext.getContentResolver().query(uri, projection, null, null, null);
+            if( cursor != null ){
+                int column_index = cursor
+                        .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                cursor.moveToFirst();
+                return cursor.getString(column_index);
+            }
+        } catch (Exception e){
+            // this is our fallback here
             Log.e(TAG, "Error getting Uri");
-            return null;
+            return uri.getPath();
         }
-        // try to retrieve the image from the media store first
-        // this will only work for images selected from gallery
-        String[] projection = { MediaStore.Images.Media.DATA };
-        //Cursor cursor = managedQuery(uri, projection, null, null, null);
-        Cursor cursor = appContext.getContentResolver().query(uri, projection, null, null, null);
-        if( cursor != null ){
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        }
-        // this is our fallback here
-        return uri.getPath();
+        return null;
     }
 
 }
