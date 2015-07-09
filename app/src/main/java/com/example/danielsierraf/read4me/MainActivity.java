@@ -54,6 +54,10 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
+    static {
+        System.loadLibrary("opencv_java");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,10 +128,9 @@ public class MainActivity extends ActionBarActivity {
         public void onItemSelected(AdapterView<?> parent, View view, int pos,
                                    long id) {
 
-            /*Toast.makeText(parent.getContext(),
+            Toast.makeText(parent.getContext(),
                     "On Item Select : \n" + parent.getItemAtPosition(pos).toString(),
-                    Toast.LENGTH_LONG).show();*/
-            Toast.makeText(parent.getContext(), hello(), Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -199,10 +202,4 @@ public class MainActivity extends ActionBarActivity {
         startActivity(intent);
     }
 
-    static {
-        System.loadLibrary("opencv_java");
-        System.loadLibrary("hello");
-    }
-
-    public native String hello();
 }

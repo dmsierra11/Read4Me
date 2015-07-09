@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.provider.MediaStore;
@@ -17,6 +18,14 @@ import android.view.View;
 import android.widget.ImageView;
 import android.net.Uri;
 import android.widget.ProgressBar;
+
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 
 public class EditPicActivity extends ActionBarActivity {
@@ -32,6 +41,8 @@ public class EditPicActivity extends ActionBarActivity {
     private Uri mUri;
     private String mDataPath;
     private ImageView imageView;
+    private AssetManager am;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +119,7 @@ public class EditPicActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "BEFORE IF DE DATA");
+        Log.d(TAG, "On Activity Result");
         if (resultCode == RESULT_OK) {
             if (requestCode == PIC_EDIT) {
                 if (data != null) {
@@ -161,7 +172,7 @@ public class EditPicActivity extends ActionBarActivity {
         startActivity( Intent.createChooser(intent, getString(R.string.photo_send_chooser_title)));
     }
 
-    public void readText(View v){
+    /*public void readText(View v){
         Context context = getApplicationContext();
 
         String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
@@ -171,6 +182,7 @@ public class EditPicActivity extends ActionBarActivity {
         //ProgressBar progressBar = (ProgressBar) findViewById(R.id.progress);
         //progressBar.setVisibility(View.VISIBLE);
 
+        //Image processing
         ImageProcessing imageProcessing = new ImageProcessing(context);
         imageProcessing.setMatGray(mDataPath);
         //image = imageProcessing.resizeImage(3000, 3000);
@@ -179,14 +191,58 @@ public class EditPicActivity extends ActionBarActivity {
         Bitmap bmp = imageProcessing.getMatBitmap();
         imageProcessing.writeImage();
 
-        //Bitmap bmp = new ImageHandler(context).getBitmapFromUri(mUri);
         Log.d(TAG, "Bitmap: "+bmp);
 
+        //OCR
         OCR ocr = new OCR(context);
         ocr.setLanguage(lang_read);
         String text = ocr.recognizeText(bmp);
         Log.d(TAG, "Text: "+text);
         //progressBar.setVisibility(View.INVISIBLE);
+
+        Intent intent = new Intent(this, TTSActivity.class);
+        intent.putExtra(TTSActivity.EXTRA_TEXT, text);
+        startActivity(intent);
+    }*/
+
+    public void readText(View v){
+        context = getApplicationContext();
+        am = getAssets();
+        String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
+
+        Log.d(TAG, "Detectando texto");
+        ImageProcessing imageProcessing = new ImageProcessing(context);
+        imageProcessing.setMatColor(mDataPath);
+        Mat img = imageProcessing.getMat();
+        //Procesamiento nativo
+        DetectTextNative detectText = new DetectTextNative(am);
+        //deteccion
+        int[] boxes = detectText.getBoundingBoxes(img.getNativeObjAddr());
+        //finalizar detecccion
+        Log.d(TAG, "Finalizando deteccion");
+        try {
+            detectText.finalize();
+        } catch (Throwable throwable) {
+            Log.e(TAG, "Error finalizando");
+            throwable.printStackTrace();
+        }
+        Log.d(TAG, "Deteccion finalizada");
+
+        //Segmentar
+        Log.d(TAG, "Numero de segmentos: "+boxes.length/4);
+        ArrayList<Mat> segments = imageProcessing.segment(boxes);
+
+        //OCR
+        String text = "";
+        Bitmap bmp = null;
+        for (int i = 0; i < segments.size(); i++){
+            bmp = imageProcessing.getMatBitmap(segments.get(i));
+            OCR ocr = new OCR(context);
+            ocr.setLanguage(lang_read);
+            text = text + ocr.recognizeText(bmp) + " ";
+            Log.d(TAG, "Text: "+text);
+            //progressBar.setVisibility(View.INVISIBLE);
+        }
 
         Intent intent = new Intent(this, TTSActivity.class);
         intent.putExtra(TTSActivity.EXTRA_TEXT, text);
