@@ -2,6 +2,7 @@
 #define _LITERATE_PR2_TEXT_DETECT_
 
 //#include "com_googlecode_tesseract_android/src/api/baseapi.h"
+#include "tesseract-ocr/api/baseapi.h"
 
 #include <iostream>
 #include "opencv/cv.h"
@@ -17,8 +18,10 @@ public:
 	~DetectText();
 
 	/* API */
-	void detect(string filename);
-	void detect(Mat& image);
+	void runDetection(string filename, char* lang);
+	void runDetection(Mat& image, char* lang);
+    void detect(Mat& image);
+    const char* read(const char* lang);
 
 	/* read useful files  */
 	void readLetterCorrelation(const char* filename);
@@ -31,6 +34,8 @@ public:
 
 	/* getters */
 	Mat& getDetection();
+    
+    vector<Rect>& getBoundingBoxes();
 
 	vector<Rect>& getBoundingBoxes(Mat& image);
 
@@ -190,6 +195,8 @@ private:
 	void showBoundingBoxes(vector<Rect>& boxes);
 	
 	void showBoundingBoxes(vector<Rect>& boxes, vector<bool>& text);
+    
+    void write2File(string str, string name);
 	// tests
 	void testEdgePoints(vector<Point> &edgepoints);
 	
@@ -243,6 +250,9 @@ private:
     bool debug_flag;
 	
 	int textDisplayOffset_;
+    
+    const char* lang_;
+    string recognizedText_;
 
 };
 

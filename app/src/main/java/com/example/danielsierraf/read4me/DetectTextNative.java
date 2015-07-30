@@ -1,7 +1,5 @@
 package com.example.danielsierraf.read4me;
 
-import org.opencv.core.Mat;
-
 import android.content.res.AssetManager;
 
 public class DetectTextNative {
@@ -20,7 +18,9 @@ public class DetectTextNative {
 
 	private native long create();
 	private native void destroy(long detectPtr);
-	private native int[] getBoundingBoxes(long detectPtr, long matAddress);
+    private native int[] getBoundingBoxes(long detectPtr);
+    private native void detect(long detectPtr, long matAddress);
+    private native String read(long detectPtr, String lang);
 
 	@Override
 	protected void finalize() throws Throwable {
@@ -29,8 +29,17 @@ public class DetectTextNative {
 		}
 		super.finalize();
 	}
-	
-	public int[] getBoundingBoxes(long matAddress) {
-		return getBoundingBoxes(detectPtr, matAddress);
-	}
+
+    public int[] getBoundingBoxes() {
+        return getBoundingBoxes(detectPtr);
+    }
+
+    public void detect(long matAddress){
+        detect(detectPtr, matAddress);
+    }
+
+    public String read(String lang){
+        return read(detectPtr, lang);
+    }
+
 }

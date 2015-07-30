@@ -27,6 +27,8 @@ import java.util.List;
 
 public class MainActivity extends ActionBarActivity {
 
+
+    public final static boolean TEST_MODE = true;
     private final String TAG = "MainActivity";
 
     private String lang;
@@ -54,9 +56,9 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
-    static {
+    /*static {
         System.loadLibrary("opencv_java");
-    }
+    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

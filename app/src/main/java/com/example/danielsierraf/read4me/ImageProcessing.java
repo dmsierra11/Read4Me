@@ -2,12 +2,12 @@ package com.example.danielsierraf.read4me;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -26,29 +26,37 @@ public class ImageProcessing {
     public static final String appName = "Read4Me";
     private static final Scalar TEXT_RECT_COLOR     = new Scalar(0, 255, 0, 255);
 
-    private Context appContext;
+    private Context context;
     private Mat src;
+    //private ArrayList<Mat> segments;
 
+    //Constructors
     public ImageProcessing(Context context){
-        appContext = context;
+        this.context = context;
+        src = new Mat();
+        //segments = new ArrayList<Mat>();
     }
 
     public ImageProcessing(Context context, String path){
-        appContext = context;
+        this.context = context;
         src = Highgui.imread(path, 1);
+        //segments = new ArrayList<Mat>();
+        preprocess();
     }
 
     public ImageProcessing(Context context, Mat img){
-        appContext = context;
+        this.context = context;
+        //segments = new ArrayList<Mat>();
+        setMat(img);
+    }
+
+    //Setters
+    public void setMat(Mat img) {
         src = img;
+        preprocess();
     }
 
-    public void setMatColor(String path){
-        src = Highgui.imread(path, 1);
-    }
-
-    public void setMat(Mat img) { src = img; }
-
+    //Getters
     public Mat getMat(){ return src; }
 
     public Bitmap getMatBitmap(){
@@ -73,24 +81,38 @@ public class ImageProcessing {
         return bmp;
     }
 
-    public void otsuThreshold(){
-        //Mat threshold = new Mat();
-        Mat blur = new Mat();
-        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.GaussianBlur(src, blur, new Size(5,5), 0);
-        //Imgproc.threshold(blur, threshold, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
-        Imgproc.threshold(blur, src, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
-        //writeImage(src);
-        //return threshold;
+    //Preprocessing
+    private void preprocess(){
+        int numcols = src.cols();
+        if (numcols < 1600) {
+            double scale;
+            if (numcols < 400) scale = 3;
+            else if (numcols >= 400 && numcols < 800) scale = 2.5;
+            else if (numcols >= 800 && numcols < 1200) scale = 2;
+            else scale = 1.5;
+            resizeImage(scale);
+        }
     }
 
-    public Mat otsuThreshold(Mat img){
-        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.threshold(img, img, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
-        //Core.bitwise_not(img, img);
-        return img;
+    private void resizeImage(double x, double y) {
+        Size size = new Size(x, y); //the dst image size,e.g.100x100
+        //Mat dst = new Mat();
+        Log.d(TAG, "Image size: "+src.rows()+"x"+src.cols());
+        Imgproc.resize(src, src, size);//resize image
+        Log.d(TAG, "New image size: "+src.rows()+"x"+src.cols());
+        //return src;
     }
 
+    private void resizeImage(double scale) {
+        Size size = new Size(0, 0); //the dst image size,e.g.100x100
+        //Mat dst = new Mat();
+        Log.d(TAG, "Image size: "+src.rows()+"x"+src.cols());
+        Imgproc.resize(src, src, size, scale, scale, Imgproc.INTER_LANCZOS4);//resize image
+        Log.d(TAG, "New image size: "+src.rows()+"x"+src.cols());
+        //return src;
+    }
+
+    //File handling
     public boolean writeImage(String filename){
         //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         String ext = ".png";
@@ -128,7 +150,7 @@ public class ImageProcessing {
         bool = Highgui.imwrite(filename, segment);
 
         if (bool == true)
-            Log.d(TAG, "SUCCESS writing image to external storage on "+filename);
+            Log.d(TAG, "SUCCESS segment image to external storage on "+filename);
         else {
             Log.d(TAG, "Fail writing image to external storage");
             return false;
@@ -137,24 +159,52 @@ public class ImageProcessing {
         return true;
     }
 
-    public void resizeImage(double x, double y) {
-        Size size = new Size(x, y); //the dst image size,e.g.100x100
-        //Mat dst = new Mat();
-        Imgproc.resize(src, src, size);//resize image
-        //return src;
+    /*public void otsuThreshold(){
+        Log.d(TAG, "Threshold Gaussian");
+        //Mat threshold = new Mat();
+        Mat blur = new Mat();
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.GaussianBlur(src, blur, new Size(5,5), 0);
+        //Imgproc.threshold(blur, threshold, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
+        Imgproc.threshold(blur, src, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
+        //writeImage(src);
+        //return threshold;
+    }*/
+
+    public Mat otsuThreshold(Mat img){
+        Log.d(TAG, "Threshold");
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.medianBlur(img, img, 5);
+        Imgproc.threshold(img, img, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
+        return img;
     }
 
-    public void resizeImage(double scale) {
-        Size size = new Size(0, 0); //the dst image size,e.g.100x100
-        //Mat dst = new Mat();
-        Imgproc.resize(src, src, size, scale, scale, Imgproc.INTER_LANCZOS4);//resize image
-        //return src;
+    public Mat MorphologyTransformation(Mat img){
+        //MORPH_RECT
+        int morph_elem = 0;
+        int morph_size = 63;
+        //BLACK_HAT
+        int morph_operator = 4;
+
+        Mat element = Imgproc.getStructuringElement(morph_elem,
+                new Size(2 * morph_size + 1, 2 * morph_size + 1),
+                new Point(morph_size, morph_size));
+
+        // Since MORPH_X : 2,3,4,5 and 6
+        int operation = morph_operator + 2;
+
+        Imgproc.morphologyEx( img, img, operation, element );
+
+        return img;
     }
 
-    public ArrayList<Mat> segment(int[] boxes){
+    /*public ArrayList<Mat> segment(int[] boxes){
+        Log.d(TAG, "Segmenting...");
         Mat img = src.clone();
+        Log.d(TAG, "cloned");
         ArrayList<Mat> segments = new ArrayList<Mat>();
         Rect[] boundingBoxes = new Rect[boxes.length/4];
+        Log.d(TAG, "BOXES "+boundingBoxes.length);
         int idx = 0;
         for (int i = 0; i < boundingBoxes.length; i++) {
             Rect box = new Rect(0, 0, 0, 0);
@@ -166,21 +216,83 @@ public class ImageProcessing {
 
             Mat ROI = img.submat(box.y, box.y + box.height, box.x, box.x + box.width);
             Log.d(TAG, "Segment "+i+" COLS: "+ROI.cols()+" ROWS: "+ROI.rows());
-            if (ROI.rows() < 30){
-                resizeImage(1.5);
+            ROI = otsuThreshold(ROI);
+            Log.d(TAG, "Thresholded");
+            Mat filtered = MorphologyTransformation(ROI);
+            Log.d(TAG, "Morphology transformed");
+            segments.add(filtered);
+
+            if (MainActivity.TEST_MODE) {
+                Log.d(TAG, "Writing segment.." + i);
+                writeSegment(filtered, "" + i);
             }
-            Log.d(TAG, "threshold");
-            Mat thresh = otsuThreshold(ROI);
-            segments.add(thresh);
-            writeSegment(thresh, ""+i);
 
             Core.rectangle(img, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
         }
 
-        writeSegment(img, "prueba");
-        Log.d(TAG, "Se escribio la imagen en la carpeta de la aplicacion");
+        if (MainActivity.TEST_MODE){
+            writeSegment(img, "detecccion");
+            Log.d(TAG, "Se escribio la imagen en la carpeta de la aplicacion");
+        }
 
         return segments;
+    }*/
+
+    public Rect[] getBoundingBoxes(int[] boxes){
+        Log.d(TAG, "Segmenting...");
+        Mat img = src.clone();
+        Log.d(TAG, "cloned");
+        Rect[] boundingBoxes = new Rect[boxes.length/4];
+        Log.d(TAG, "BOXES "+boundingBoxes.length);
+        int idx = 0;
+        for (int i = 0; i < boundingBoxes.length; i++) {
+            Rect box = new Rect(0, 0, 0, 0);
+            box.x = boxes[idx++];
+            box.y = boxes[idx++];
+            box.width = boxes[idx++];
+            box.height = boxes[idx++];
+            boundingBoxes[i] = box;
+
+            Core.rectangle(img, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
+        }
+
+        if (MainActivity.TEST_MODE){
+            writeSegment(img, "detecccion");
+            Log.d(TAG, "Se escribio la imagen en la carpeta de la aplicacion");
+        }
+
+        return boundingBoxes;
+
     }
 
+    public String readPatches(Rect[] boundingBoxes, String lang_read){
+
+        String text = "";
+        for (int i=0; i < boundingBoxes.length; i++){
+            Rect box = boundingBoxes[i];
+            Mat ROI = src.submat(box.y, box.y + box.height, box.x, box.x + box.width);
+            Log.d(TAG, "Segmented "+i+" COLS: "+ROI.cols()+" ROWS: "+ROI.rows());
+            ROI = otsuThreshold(ROI);
+            Log.d(TAG, "Thresholded");
+            Mat filtered = MorphologyTransformation(ROI);
+            Log.d(TAG, "Morphology transformed");
+            //segments.add(ROI);
+
+            if (MainActivity.TEST_MODE) {
+                Log.d(TAG, "Writing segment.." + i);
+                Log.d(TAG, "Size patch: "+filtered.cols()+"x"+filtered.rows());
+                writeSegment(filtered, "" + i);
+            }
+
+            //OCR
+            Bitmap bmp = getMatBitmap(filtered);
+            OCR ocr = new OCR(context);
+            ocr.setLanguage(lang_read);
+            text = text + ocr.recognizeText(bmp) + " ";
+            Log.d(TAG, "Text: "+text);
+            //progressBar.setVisibility(View.INVISIBLE);
+        }
+
+        return text;
+    }
 }

@@ -44,10 +44,17 @@ public class EditPicActivity extends ActionBarActivity {
     private AssetManager am;
     private Context context;
 
+    static {
+        System.loadLibrary("opencv_java");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "Created instance");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_pic);
+
+        //System.loadLibrary("opencv_java");
 
         final Intent intent = getIntent();
         //imageView = new ImageView(this);
@@ -210,14 +217,15 @@ public class EditPicActivity extends ActionBarActivity {
         am = getAssets();
         String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
 
-        Log.d(TAG, "Detectando texto");
-        ImageProcessing imageProcessing = new ImageProcessing(context);
-        imageProcessing.setMatColor(mDataPath);
+        Log.d(TAG, "Detectando texto de: "+mDataPath);
+        ImageProcessing imageProcessing = new ImageProcessing(context, mDataPath);
         Mat img = imageProcessing.getMat();
-        //Procesamiento nativo
+
+        //Deteccion de texto (nativo c++)
         DetectTextNative detectText = new DetectTextNative(am);
-        //deteccion
-        int[] boxes = detectText.getBoundingBoxes(img.getNativeObjAddr());
+        detectText.detect(img.getNativeObjAddr());
+        int[] boxes = detectText.getBoundingBoxes();
+        String text = detectText.read(lang_read);
         //finalizar detecccion
         Log.d(TAG, "Finalizando deteccion");
         try {
@@ -228,25 +236,36 @@ public class EditPicActivity extends ActionBarActivity {
         }
         Log.d(TAG, "Deteccion finalizada");
 
-        //Segmentar
-        Log.d(TAG, "Numero de segmentos: "+boxes.length/4);
+        if (MainActivity.TEST_MODE){
+            imageProcessing.writeImage("original");
+        }
+
+        //show bounding boxes
+        //Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
+        //OCR
+        //String text = imageProcessing.readPatches(boundingBoxes, lang_read);
+
+        //Segmentar imagen
+        /*Log.d(TAG, "Numero de segmentos: "+boxes.length/4);
         ArrayList<Mat> segments = imageProcessing.segment(boxes);
 
         //OCR
         String text = "";
         Bitmap bmp = null;
         for (int i = 0; i < segments.size(); i++){
-            bmp = imageProcessing.getMatBitmap(segments.get(i));
+            bmp = getMatBitmap(segments.get(i));
             OCR ocr = new OCR(context);
             ocr.setLanguage(lang_read);
             text = text + ocr.recognizeText(bmp) + " ";
             Log.d(TAG, "Text: "+text);
             //progressBar.setVisibility(View.INVISIBLE);
-        }
+        }*/
 
-        Intent intent = new Intent(this, TTSActivity.class);
+
+        /*Intent intent = new Intent(this, TTSActivity.class);
         intent.putExtra(TTSActivity.EXTRA_TEXT, text);
-        startActivity(intent);
+        startActivity(intent);*/
+        Log.d(TAG, text);
     }
 
     private void setPic() {

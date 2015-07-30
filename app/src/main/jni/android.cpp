@@ -16,11 +16,6 @@ namespace {
 
 extern "C" {
 
-    JNIEXPORT jstring JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_hello
-      (JNIEnv * env, jobject obj){
-        return (env)->NewStringUTF("Hello from JNI finally");
-    }
-
 	JNIEXPORT jlong JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_create
 	    (JNIEnv* env, jobject jobj) {
 	    LOGD("Create native");
@@ -34,6 +29,33 @@ extern "C" {
 	}
 
 	JNIEXPORT jintArray JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_getBoundingBoxes
+        	    (JNIEnv* env, jobject jobj, jlong detectPtr) {
+
+        vector<Rect> boundingBoxes = toDetectTextNative(detectPtr)->getBoundingBoxes();
+        LOGD("Create new int array");
+        jintArray result = env->NewIntArray(boundingBoxes.size() * 4);
+
+        if (result == NULL) {
+            return NULL;
+        }
+
+        LOGD("bounding boxes");
+        jint tmp_arr[boundingBoxes.size() * 4];
+
+        int idx = 0;
+        for (int i = 0; i < boundingBoxes.size(); i++) {
+            tmp_arr[idx++] = boundingBoxes[i].x;
+        	tmp_arr[idx++] = boundingBoxes[i].y;
+        	tmp_arr[idx++] = boundingBoxes[i].width;
+        	tmp_arr[idx++] = boundingBoxes[i].height;
+        }
+
+        env->SetIntArrayRegion(result, 0, boundingBoxes.size() * 4, tmp_arr);
+        LOGD("Return result");
+        return result;
+    }
+
+	/*JNIEXPORT jintArray JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_getBoundingBoxes
 	    (JNIEnv* env, jobject jobj, jlong detectPtr, jlong matAddress) {
 
         LOGD("Creating native mat address");
@@ -61,11 +83,26 @@ extern "C" {
 		env->SetIntArrayRegion(result, 0, boundingBoxes.size() * 4, tmp_arr);
         LOGD("Return result");
 	    return result;
-	}
+	}*/
 
-	/*JNIEXPORT jintArray JNICALL Java_com_example_danielsierraf_read4me_MainActivity_getBoundingBoxes
-    	    (JNIEnv* env, jobject jobj, jlong detectPtr, jlong matAddress) {
-        LOGD("Native Bounding Boxes");
-    }*/
+	JNIEXPORT void JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_detect
+    	    (JNIEnv* env, jobject jobj, jlong detectPtr, jlong matAddress){
+    	LOGD("Detecting...");
+        Mat& mRgb = *(Mat*)matAddress;
+        toDetectTextNative(detectPtr)->detect(mRgb);
+        LOGD("Finish detecting");
+    }
+
+    JNIEXPORT jstring JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_read
+        	    (JNIEnv* env, jobject jobj, jlong detectPtr, jstring lang){
+        const char *nativeString = (env)->GetStringUTFChars(lang, 0);
+        // use your string
+        LOGD("Reading...");
+        const char* str = toDetectTextNative(detectPtr)->read(nativeString);
+        LOGD("Finish reading");
+        (env)->ReleaseStringUTFChars(lang, nativeString);
+        LOGD("UTF realeased");
+        return (env)->NewStringUTF(str);
+    }
 
 }

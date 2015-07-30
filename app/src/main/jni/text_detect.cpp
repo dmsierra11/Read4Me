@@ -17,6 +17,8 @@
 #include <string>
 #include <sstream>
 #include <stdio.h>
+//#include <tesseract/baseapi.h>
+//#include <leptonica/allheaders.h>
 
 //#include <android/log.h>
 
@@ -32,22 +34,71 @@ minLetterHeight_(0), textDisplayOffset_(1) {}
 DetectText::~DetectText() {}
 
 /* API for detect text from image */
-void DetectText::detect(string filename) {
+void DetectText::runDetection(string filename, char* lang) {
     filename_ = filename;
     originalImage_ = imread(filename_);
     if (!originalImage_.data) {
         //ROS_ERROR("Cannot read image input...");
         return;
     }
+    
+    double start_time1, start_time2;
+    double time_in_seconds1, time_in_seconds2;
+    start_time1 = clock();
+    start_time2 = clock();
+    
     mode_ = IMAGE;
+    
+    int numcols = originalImage_.cols;
+    cout << "image size:" << numcols << "X" << originalImage_.rows << endl;
+    if (numcols < 1600) {
+        double scale;
+        if (numcols < 400) scale = 3;
+        else if (numcols >= 400 && numcols < 800) scale = 2.5;
+        else if (numcols >= 800 && numcols < 1200) scale = 2;
+        else scale = 1.5;
+        resize(originalImage_, originalImage_, Size(0,0), scale, scale, INTER_LANCZOS4);
+    }
+    cout << "image resized:" << originalImage_.cols << "X" << originalImage_.rows << endl;
+    
     detect();
+    time_in_seconds1 = (clock() - start_time1) / (double)CLOCKS_PER_SEC;
+    cout << time_in_seconds1 << "s for detecting\n" << endl;
+    
+    string output = read(lang);
+    cout << "OUTPUT: " << output << endl;
+    time_in_seconds2 = (clock() - start_time2) / (double)CLOCKS_PER_SEC;
+    cout << time_in_seconds2 << "s total in process\n" << endl;
 }
 
-void DetectText::detect(Mat& image) {
-    filename_ = string("streaming.jpg");
-    originalImage_ = image;
+void DetectText::runDetection(Mat& image, char* lang) {
+    double start_time1, start_time2;
+    double time_in_seconds1, time_in_seconds2;
+    start_time1 = clock();
+    start_time2 = clock();
+    
     mode_ = STREAM;
-    detect();
+    
+    int numcols = image.cols;
+    cout << "image size:" << image.cols << "X" << image.rows << endl;
+    if (numcols < 1600) {
+        double scale;
+        if (numcols < 400) scale = 3;
+        else if (numcols >= 400 && numcols < 800) scale = 2.5;
+        else if (numcols >= 800 && numcols < 1200) scale = 2;
+        else scale = 1.5;
+        resize(image, image, Size(0,0), scale, scale, INTER_LANCZOS4);
+    }
+    cout << "image resized:" << image.cols << "X" << image.rows << endl;
+    
+    detect(image);
+    time_in_seconds1 = (clock() - start_time1) / (double)CLOCKS_PER_SEC;
+    cout << time_in_seconds1 << "s for detecting\n" << endl;
+    
+    string output = read(lang);
+    cout << "OUTPUT: " << output << endl;
+    time_in_seconds2 = (clock() - start_time2) / (double)CLOCKS_PER_SEC;
+    cout << time_in_seconds2 << "s total in process\n" << endl;
 }
 
 /* getters */
@@ -60,12 +111,13 @@ vector<string>&
 DetectText::getWords() {
     return wordsBothSides_;
 }
+
+vector<Rect>&
+DetectText::getBoundingBoxes(){
+    return boundingBoxes_;
+}
 /* internal process */
 void DetectText::detect() {
-    
-    double start_time;
-    double time_in_seconds;
-    start_time = clock();
     
     Mat imGray(originalImage_.size(),CV_8UC1, Scalar(0));
     cvtColor(originalImage_, imGray, CV_RGB2GRAY);
@@ -81,17 +133,41 @@ void DetectText::detect() {
     firstPass_ = false;
     pipeline(-1);
     
-    //boundingBoxes_ = bigBoxes
     overlapBoundingBoxes(boundingBoxes_);
-    ocrRead(boundingBoxes_);
-    showBoundingBoxes(boxesBothSides_);
-    //overlayText(boxesBothSides_, wordsBothSides_);
+    showBoundingBoxes(boundingBoxes_);
+}
+
+void DetectText::detect(Mat& image) {
+    originalImage_ = image.clone();
     
-    time_in_seconds = (clock() - start_time) / (double)CLOCKS_PER_SEC;
-    cout << time_in_seconds << "s total in process\n" << endl;
+    Mat imGray(originalImage_.size(),CV_8UC1, Scalar(0));
+    cvtColor(originalImage_, imGray, CV_RGB2GRAY);
+    
+    boundingBoxes_.clear();
+    boxesBothSides_.clear();
+    wordsBothSides_.clear();
+    boxesScores_.clear();
+    
+    preprocess(imGray);
+    firstPass_ = true;
+    pipeline(1);
+    firstPass_ = false;
+    pipeline(-1);
+    
+    overlapBoundingBoxes(boundingBoxes_);
+    //showBoundingBoxes(boundingBoxes_);
+}
+
+const char* DetectText::read(const char* lang){
+    lang_ = lang;
+    printf ("Reading native in %s \n", lang_ );
+    ocrRead(boundingBoxes_);
+    //overlayText(boxesBothSides_, wordsBothSides_);
     
     textDisplayOffset_ = 1;
     
+    const char *cstr = recognizedText_.c_str();
+    return cstr;
 }
 
 vector<Rect>&
@@ -127,19 +203,20 @@ DetectText::getBoundingBoxes(Mat& image) {
  * y mínima altura de letra
  **/
 void DetectText::preprocess(Mat& image) {
-    cout << "preprocessing: " << filename_ << endl;
-    cout << "image size:" << image.cols << "X" << image.rows << endl;
+    //cout << "preprocessing: " << filename_ << endl;
     
-    int slashIndex = -1;
-    int dotIndex = -1;
-    for (size_t i = filename_.length() - 1; i != 0; i--) {
-        if (dotIndex == -1 && filename_[i] == '.')
-            dotIndex = i;
-        if (slashIndex == -1 && filename_[i] == '/')
-            slashIndex = i;
+    if (mode_ == IMAGE) {
+        int slashIndex = -1;
+        int dotIndex = -1;
+        for (size_t i = filename_.length() - 1; i != 0; i--) {
+            if (dotIndex == -1 && filename_[i] == '.')
+                dotIndex = i;
+            if (slashIndex == -1 && filename_[i] == '/')
+                slashIndex = i;
+        }
+        outputPrefix_ = filename_.substr(slashIndex + 1, dotIndex - slashIndex - 1);
+        cout << "outputPrefix: " << outputPrefix_ << endl;
     }
-    outputPrefix_ = filename_.substr(slashIndex + 1, dotIndex - slashIndex - 1);
-    cout << "outputPrefix: " << outputPrefix_ << endl;
     
     image_ = image;
     //	bilateralFilter(image, image_, 7, 20, 50); // prosilica sensor noise
@@ -148,26 +225,6 @@ void DetectText::preprocess(Mat& image) {
     initialStrokeWidth_ = maxStrokeWidth_ * 2;
     maxLetterHeight_ = 600;
     minLetterHeight_ = 10;
-    
-    /*IplImage *img2 = new IplImage(originalImage_);
-    //showImage("IMG2", img2);
-    IplImage *img1 = cvCreateImage(cvSize(image.cols + 600, image.rows),
-                                   img2->depth, img2->nChannels);
-    //showImage("IMG1", img1);
-    
-    cvSet(img1, cvScalar(0, 0, 0));
-    //showImage("IMG1 set black", img1);
-    cvSetImageROI(img1, cvRect(0, 0, image.cols, image.rows));
-    //showImage("IMG1 ROI", img1);
-    cvCopy(img2, img1, NULL);
-    //showImage("IMG1 COPY", img1);
-    cvResetImageROI(img1);
-    //showImage("IMG1 RESET ROI", img1);
-    detection_ = Mat(img1).clone();
-    //showImage("DETECTION_", img1);
-    cvReleaseImage(&img1);
-    delete img1;
-    delete img2;*/
 }
 
 void DetectText::showImage(string name, Mat img){
@@ -181,49 +238,49 @@ void DetectText::pipeline(int blackWhite) {
     } else if (blackWhite == -1) {
         fontColor_ = DARK;
     } else {
-        cout << "blackwhite should only be +/-1" << endl;
+        //cout << "blackwhite should only be +/-1" << endl;
         assert(false);
     }
     // initialize swtmap with large values
     double start_time;
     double time_in_seconds;
-    
-    start_time = clock();
+
+    //start_time = clock();
     Mat swtmap(image_.size(), CV_32FC1, Scalar(initialStrokeWidth_));
     strokeWidthTransform(image_, swtmap, blackWhite);
-    time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    cout << time_in_seconds << "s in strokeWidthTransform" << endl;
+    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
+    //cout << time_in_seconds << "s in strokeWidthTransform" << endl;
     
-    start_time = clock();
+    //start_time = clock();
     Mat ccmap(image_.size(), CV_32FC1, Scalar(-1));
     componentsRoi_.clear();
     nComponent_ = connectComponentAnalysis(swtmap, ccmap);
-    time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    cout << time_in_seconds << "s in connectComponentAnalysis" << endl;
+    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
+    //cout << time_in_seconds << "s in connectComponentAnalysis" << endl;
     
-    start_time = clock();
+    //start_time = clock();
     identifyLetters(swtmap, ccmap);
-    time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    cout << time_in_seconds << "s in identifyLetters" << endl;
+    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
+    //cout << time_in_seconds << "s in identifyLetters" << endl;
     
-    start_time = clock();
+    //start_time = clock();
     groupLetters(swtmap, ccmap);
-    time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    cout << time_in_seconds << "s in groupLetters" << endl;
+    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
+    //cout << time_in_seconds << "s in groupLetters" << endl;
     
-    start_time = clock();
+    //start_time = clock();
     chainPairs(ccmap);
-    time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    cout << time_in_seconds << "s in chainPairs" << endl;
+    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
+    //cout << time_in_seconds << "s in chainPairs" << endl;
 
-    showEdgeMap();
-    showSwtmap(swtmap);
-    showCcmap(ccmap);
-    showLetterGroup();
+    //showEdgeMap();
+    //showSwtmap(swtmap);
+    //showCcmap(ccmap);
+    //showLetterGroup();
     //showLetterDetection();
     
     disposal();
-    cout << "finish clean up" << endl;
+    //cout << "finish clean up" << endl;
     
 }
 
@@ -452,7 +509,7 @@ void DetectText::identifyLetters(const Mat& swtmap, const Mat& ccmap) {
     assert(static_cast<size_t>(nComponent_) == componentsRoi_.size());
     isLetterComponects_ = new bool[nComponent_];
     vector<float> iComponentStrokeWidth;
-    cout << nComponent_ << "componets" << endl;
+    //cout << nComponent_ << "componets" << endl;
     bool *innerComponents = new bool[nComponent_];
     for (size_t i = 0; i < nComponent_; i++) {
         float maxStrokeWidth = 0;
@@ -772,7 +829,7 @@ void DetectText::overlapBoundingBoxes(vector<Rect>& boundingBoxes) {
 }
 
 void DetectText::overlayText(vector<Rect>& box, vector<string>& text) {
-    detection_ = originalImage_.clone();
+    //detection_ = originalImage_.clone();
     
     assert(box.size() == text.size());
     Scalar color(0, 255, 0);
@@ -787,14 +844,23 @@ void DetectText::overlayText(vector<Rect>& box, vector<string>& text) {
             continue;
         std::string s;
         std::stringstream out;
-        out << count;
+        //out << count;
+        out << output;
         count++;
-        string prefix = "[";
-        prefix = prefix + out.str() + "]";
+        //string prefix = "[";
+        //prefix = prefix + out.str() + "]";
+        string prefix = output;
+        
+        int offset = 10;
         putText(detection_, prefix,
-                Point(box[i].x + box[i].width, box[i].y + box[i].height),
+                Point(box[i].x + offset, box[i].y + box[i].height + offset),
                 FONT_HERSHEY_DUPLEX, 1, color, 2);
-        putText(detection_, prefix, Point(image_.cols, textDisplayOffset_ * 35),
+        
+        
+        /*putText(detection_, prefix,
+                Point(box[i].x + box[i].width, box[i].y + box[i].height),
+                FONT_HERSHEY_DUPLEX, 1, color, 2);*/
+        /*putText(detection_, prefix, Point(image_.cols, textDisplayOffset_ * 35),
                 FONT_HERSHEY_DUPLEX, 1, color, 2);
         while (output.length() > lineWidth) {
             putText(detection_, output.substr(0, lineWidth),
@@ -805,13 +871,19 @@ void DetectText::overlayText(vector<Rect>& box, vector<string>& text) {
         }
         putText(detection_, output,
                 Point(image_.cols + indent, textDisplayOffset_ * 35),
-                FONT_HERSHEY_DUPLEX, 1, color, 2);
+                FONT_HERSHEY_DUPLEX, 1, color, 2);*/
         textDisplayOffset_ += 2;
     }
+    
+    if (mode_ == IMAGE) {
+        imwrite("10."+outputPrefix_+"_text.png", detection_);
+    }
+    
 }
 
 void DetectText::ocrRead(vector<Rect>& boundingBoxes) {
     sort(boundingBoxes.begin(), boundingBoxes.end(), DetectText::spaticalOrder);
+    recognizedText_ = "";
     for (size_t i = 0; i < boundingBoxes.size(); i++) {
         string result;
         stringstream ss;
@@ -820,52 +892,74 @@ void DetectText::ocrRead(vector<Rect>& boundingBoxes) {
         s = ss.str() + ".tiff";
         //float score = ocrRead(originalImage_(boundingBoxes[i]), result, s);
         float score = ocrRead(image_(boundingBoxes[i]), result, s);
-        if (score > 0) {
+        
+        //float score = 1;
+        //Mat imageFilter = filterPatch(image_(boundingBoxes[i]));
+        //imwrite(s, imageFilter);
+        
+        stringstream ss_word;
+        ss_word << "patches/" << i << ".txt";
+        //write2File(result, ss_word.str());
+        
+        recognizedText_ += result;
+
+        //if (score > 0) {
             boxesBothSides_.push_back(boundingBoxes[i]);
             wordsBothSides_.push_back(result);
             boxesScores_.push_back(score);
-        }
+        //}
     }
+    /*stringstream ss2;
+    ss2 << "patches/output.txt";
+    string name = ss2.str();
+    DetectText::write2File(result_concat, name);*/
 }
 
 float DetectText::ocrRead(const Mat& imagePatch, string& output, string name) {
     float score = 0;
     Mat scaledImage;
-    cout << "Image patch rows: " << imagePatch.rows << endl;
-    if (imagePatch.rows < 30)
+    //cout << "Image patch rows: " << imagePatch.rows << endl;
+    /*if (imagePatch.rows < 30)
     {
         double scale = 1.5;
-        resize(imagePatch, scaledImage, Size(0,0),
+        resize(imagePatch, imagePatch, Size(0,0),
         scale, scale, INTER_LANCZOS4);
+        //imwrite(name, imagePatch);
+    }*/
     
-        imwrite(name, scaledImage);
+    Mat imageFilter = filterPatch(imagePatch);
+    if (mode_ == IMAGE) {
+        imwrite(name, imageFilter);
     }
-    //FOR LIGHT BACKGROUND
-    //threshold(imagePatch, imagePatch, 0, 255, THRESH_BINARY | CV_THRESH_OTSU);
-    //FOR DARK BACKGROUND
-    threshold(imagePatch, imagePatch, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
-    imwrite(name, imagePatch);
     
-    //	tesseract::TessBaseAPI tess;
-    //	tess.Init(NULL, "eng");
-    //	tess.SetImage((uchar*)imagePatch.data, imagePatch.size().width, imagePatch.size().height, imagePatch.channels(), imagePatch.step1());
-    //	tess.Recognize(0);
-    //	char* out = tess.GetUTF8Text();
-    //
-    //	string str(out);
-    //	string buf;
-    //	stringstream ss(str);
-    //
-    //	vector<string> tokens;
-    //
-    //	while (ss >> buf)
-    //		tokens.push_back(buf);
-    //
-    //	for(std::vector<int>::size_type i = 0; i != tokens.size(); i++) {
-    //		string tempOutput;
-    //		score += spellCheck(tokens[i], tempOutput, 2);
-    //		output += tempOutput;
-    //	}
+    //basic
+    tesseract::TessBaseAPI tess;
+    tess.Init(NULL, lang_);
+    tess.SetImage((uchar*)imageFilter.data, imageFilter.size().width, imageFilter.size().height, imageFilter.channels(), imageFilter.step1());
+    //tess.Recognize(0);
+    char* out = tess.GetUTF8Text();
+    
+    //cout << "TESSERACT OUTPUT:  " << out << endl;
+    
+    string str(out);
+    string buf;
+    stringstream ss(str);
+    
+    vector<string> tokens;
+    
+    while (ss >> buf)
+    tokens.push_back(buf);
+    
+    for(std::vector<int>::size_type i = 0; i != tokens.size(); i++) {
+        string tempOutput;
+        //score += spellCheck(tokens[i], tempOutput, 1);
+        score += spellCheck(tokens[i], tempOutput, 2);
+        //score += spellCheck(tokens[i], tempOutput, 3);
+        output += tempOutput;
+    }
+    
+    //output = out;
+    //cout << "FINAL OUTPUT: " << output << endl;*/
     
     return score;
 }
@@ -873,6 +967,7 @@ float DetectText::ocrRead(const Mat& imagePatch, string& output, string name) {
 // two option: 1 for aspell, 2 for correlation edit distance
 // return the score for the input
 float DetectText::spellCheck(string& str, string& output, int method) {
+    //cout << "string: " << str << endl;
     int letterCount = 0, errorCount = 0, lNoiseCount = 0, digitCount = 0;
     string withoutStrangeMarks;
     float score = 0;
@@ -924,53 +1019,60 @@ float DetectText::spellCheck(string& str, string& output, int method) {
     } else if (letterCount < static_cast<int>(str.length()) / 2) {
         // don't show up garbbige
     } else {
-        // if (method == 1)
-        // {
-        // 	const string command("echo " + withoutStrangeMarks +
-        // 			" | aspell -a >> output");
-        // 	int r = system(command.c_str());
-        // 	fstream fin("output");
-        // 	string result;
-        // 	int count = 0;
-        //
-        // 	while (fin >> result)
-        // 	{
-        // 		if (count)
-        // 		{
-        // 			count ++;
-        // 			if (count >= 5)
-        // 			{
-        // 				output	+= result + " ";
-        // 			}
-        // 			if (count == 10)
-        // 			{
-        // 				if ((output)[output.length()-2]==',')
-        // 					((output)[output.length()-2]=' ');
-        // 				break;
-        // 			}
-        // 		}
-        // 		if (result[0] == '&')
-        // 		{
-        // 			count++;
-        // 			output += "{";
-        // 		}
-        // 		else if (result[0] == '*')
-        // 		{
-        // 			output += " " + str;
-        // 			break;
-        // 		}
-        // 	}
-        // 	if (count)
-        // 		output += "}";
-        // 	r = system("rm output");
-        // }
+         if (method == 1)
+         {
+         	const string command("echo " + withoutStrangeMarks +
+         			" | aspell -a >> output");
+         	int r = system(command.c_str());
+         	fstream fin("output");
+         	string result;
+         	int count = 0;
+        
+         	while (fin >> result)
+         	{
+         		if (count)
+         		{
+         			count ++;
+         			if (count >= 5)
+         			{
+         				output	+= result + " ";
+         			}
+         			if (count == 10)
+         			{
+         				if ((output)[output.length()-2]==',')
+         					((output)[output.length()-2]=' ');
+         				break;
+         			}
+         		}
+         		if (result[0] == '&')
+         		{
+         			count++;
+         			output += "{";
+         		}
+         		else if (result[0] == '*')
+         		{
+         			output += " " + str;
+         			break;
+         		}
+         	}
+         	if (count)
+         		output += "}";
+         	r = system("rm output");
+         }
+        
+        output += withoutStrangeMarks + " ";
         
         // dictionary search
-        if (method == 2) {
+        /*if (method == 2) {
             vector < Word > topk;
             string nearestWord;
+            cout << "Without strange marks: " << withoutStrangeMarks << endl;
             getTopkWords(withoutStrangeMarks, 3, topk);
             if (result_ == COARSE) {
+                cout << "COARSE score: " << topk[0].score << " word: " << topk[0].word << endl;
+                cout << "COARSE score: " << topk[1].score << " word: " << topk[1].word << endl;
+                cout << "COARSE score: " << topk[2].score << " word: " << topk[2].word << endl;
+                
                 string topWord = topk[0].word;
                 output = topk[0].word + " ";
                 
@@ -991,6 +1093,8 @@ float DetectText::spellCheck(string& str, string& output, int method) {
                         score = topWord.length();
                 }
             } else if (result_ == FINE) {
+                //cout << "FINE " << topk << endl;
+                cout << "FINE score: " << topk[0].score << " word: " << topk[0].word << endl;
                 if (topk[0].score == 0) {
                     output = topk[0].word + " ";
                     score += topk[0].word.length() * 2;
@@ -1006,7 +1110,8 @@ float DetectText::spellCheck(string& str, string& output, int method) {
                     output += "} ";
                 }
             }
-        }
+        }*/
+        
     }
     
     return score;
@@ -1014,9 +1119,59 @@ float DetectText::spellCheck(string& str, string& output, int method) {
 
 Mat DetectText::filterPatch(const Mat& patch) {
     Mat result;
-    Mat element = getStructuringElement(MORPH_ELLIPSE,
-                                        Size(patch.cols / 3, patch.rows / 3));
-    morphologyEx(patch, result, MORPH_TOPHAT, element);
+    
+    /*Mat resultResized;
+    cout << "PATCHS SIZE: " << patch.cols() << "x" << patch.rows() << endl;
+    if (patch.cols() < 500) {
+        if (patch.cols() > 400)
+            resultResized = resize(patch, 0, 0, 1.5);
+        else if (patch.cols() > 300)
+            resultResized = resize(patch, 0, 0, 2);
+        else if (patch.cols() > 200) resultResized = resize(patch, 0, 0, 2.5);
+        else resultResized = resize(patch, 0, 0, 3);
+    }
+    //resultResized.create(33,144, CV_8UC3);
+    //resize(patch, resultResized, resultResized.size(), 0, 0, INTER_CUBIC);
+    resultResized = patch;*/
+   
+    //Noise removal
+    //GaussianBlur(patch, patch, cv::Size(5,5), 5);
+    //blur( patch, patch, Size(5,5) );
+    
+    medianBlur( patch, patch, 5 );
+    //medianBlur( resultResized, resultResized, 5 );
+    
+    //Binarisation
+    //FOR LIGHT BACKGROUND
+    threshold(patch, patch, 0, 255, THRESH_BINARY | CV_THRESH_OTSU);
+    //threshold(resultResized, resultResized, 0, 255, THRESH_BINARY | CV_THRESH_OTSU);
+    //FOR DARK BACKGROUND
+    //threshold(imagePatch, imagePatch, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
+    
+    //Noise removal
+    //GaussianBlur(patch, patch, cv::Size(5,5), 5);
+    //blur( patch, patch, Size(5,5) );
+    //medianBlur( patch, patch, 5 );
+    
+    //Morphology transformation
+    //MORPH_RECT
+    int morph_elem = 0;
+    int morph_size = 63;
+    //BLACK_HAT
+    int morph_operator = 4;
+    
+    Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+    
+    // Since MORPH_X : 2,3,4,5 and 6
+    int operation = morph_operator + 2;
+    /// Apply the specified morphology operation
+    
+    morphologyEx( patch, patch, operation, element );
+    //morphologyEx( resultResized, resultResized, operation, element );
+    
+    
+    result = patch;
+    //result = resultResized;
     return result;
 }
 
@@ -1165,15 +1320,19 @@ float DetectText::insertToList(vector<Word>& words, Word& word) {
  \*--------------------------------------------------------*/
 
 void DetectText::showEdgeMap() {
-    if (firstPass_)
-        imwrite("1."+outputPrefix_+"_outedgemap.png", edgemap_);
+    if (mode_ == IMAGE) {
+        if (firstPass_)
+            imwrite("1."+outputPrefix_+"_outedgemap.png", edgemap_);
+    }
 }
 
 void DetectText::showSwtmap(Mat& swtmap) {
-    if (firstPass_)
-        imwrite("2."+outputPrefix_+"swtmap1.png", swtmap * 10);
-    else
-        imwrite("5."+outputPrefix_+"swtmap2.png", swtmap * 10);
+    if (mode_ == IMAGE) {
+        if (firstPass_)
+            imwrite("2."+outputPrefix_+"swtmap1.png", swtmap * 10);
+        else
+            imwrite("5."+outputPrefix_+"swtmap2.png", swtmap * 10);
+    }
 }
 
 void DetectText::showCcmap(Mat& ccmap) {
@@ -1184,10 +1343,12 @@ void DetectText::showCcmap(Mat& ccmap) {
         rectangle(ccmapLetters, Point(itr->x, itr->y),
                   Point(itr->x + itr->width, itr->y + itr->height), Scalar(0.5));
     }*/
-    if (firstPass_)
-        imwrite("3."+outputPrefix_+"ccmap1.png", ccmapLetters * nComponent_);
-    else
-        imwrite("6."+outputPrefix_+"ccmap2.png", ccmapLetters * nComponent_);
+    if (mode_ == IMAGE) {
+        if (firstPass_)
+            imwrite("3."+outputPrefix_+"ccmap1.png", ccmapLetters * nComponent_);
+        else
+            imwrite("6."+outputPrefix_+"ccmap2.png", ccmapLetters * nComponent_);
+    }
 }
 
 void DetectText::showLetterGroup() {
@@ -1206,10 +1367,13 @@ void DetectText::showLetterGroup() {
                       2);
         }
     }
-    if (firstPass_)
-        imwrite("4."+outputPrefix_ + "_group1.png", output);
-    else
-        imwrite("7."+outputPrefix_ + "_group2.png", output);
+    
+    if (mode_ == IMAGE) {
+        if (firstPass_)
+            imwrite("4."+outputPrefix_ + "_group1.png", output);
+        else
+            imwrite("7."+outputPrefix_ + "_group2.png", output);
+    }
 }
 
 void DetectText::showLetterDetection() {
@@ -1226,11 +1390,13 @@ void DetectText::showLetterDetection() {
             /*rectangle(output, Point(itr->x, itr->y),
                       Point(itr->x + itr->width, itr->y + itr->height), scalar,
                       2);*/
-            stringstream ss;
-            string s;
-            ss << "tmpChars/" << i;
-            s = ss.str() + ".tiff";
-            imwrite(s, originalImage_(*itr));
+            if (mode_ == IMAGE) {
+                stringstream ss;
+                string s;
+                ss << "tmpChars/" << i;
+                s = ss.str() + ".tiff";
+                imwrite(s, originalImage_(*itr));
+            }
         }
     }
     /*if (firstPass_)
@@ -1248,6 +1414,9 @@ void DetectText::showBoundingBoxes(vector<Rect>& boundingBoxes) {
         rectangle(detection_, Point(rect->x, rect->y),
                   Point(rect->x + rect->width, rect->y + rect->height), scalar,
                   3);
+    }
+    if (mode_ == IMAGE) {
+        imwrite("9."+outputPrefix_ + "_showBoxes.png", detection_);
     }
 }
 
@@ -1500,6 +1669,18 @@ int DetectText::editDistance(const string& s, const string& t) {
     }
     return d[n][m];
 }
+
+/*void DetectText::write2File(string str, string name) {
+    
+    ofstream myfile (name);
+    if (myfile.is_open())
+    {
+        myfile << str << "\n";
+        myfile.close();
+    }
+    else cout << "Unable to open file";
+    //return 0;
+}*/
 
 /*------------- test functions-------------------*/
 void DetectText::testGetCorrelationIndex() {

@@ -15,6 +15,8 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -26,19 +28,27 @@ import android.view.View.OnTouchListener;
 public class ColorBlobDetectionActivity extends Activity implements OnTouchListener, CvCameraViewListener2 {
     private static final String  TAG = "ColorDetectionActivity";
 
-    private boolean              mIsColorSelected = false;
+    //private boolean              mIsColorSelected = false;
     private Mat                  mRgba;
-    private Scalar               mBlobColorRgba;
-    private Scalar               mBlobColorHsv;
-    private ColorBlobDetector    mDetector;
-    private Mat                  mSpectrum;
-    private Size                 SPECTRUM_SIZE;
+    //private Scalar               mBlobColorRgba;
+    //private Scalar               mBlobColorHsv;
+    //private ColorBlobDetector    mDetector;
+    private DetectTextNative textDetector;
+    //private Mat                  mSpectrum;
+    //private Size                 SPECTRUM_SIZE;
     private Scalar               CONTOUR_COLOR;
+    private AssetManager am;
+    private String lang_read;
+    private Context context;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
     public ColorBlobDetectionActivity() {
         Log.i(TAG, "Instantiated new "+ ColorBlobDetectionActivity.class);
+    }
+
+    static {
+        System.loadLibrary("opencv_java");
     }
 
     /** Called when the activity is first created. */
@@ -51,6 +61,8 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
 
         setContentView(R.layout.color_blob_detection_surface_view);
 
+        am = this.getAssets();
+        context = getApplicationContext();
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.enableView();
@@ -80,19 +92,29 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
 
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
-        mDetector = new ColorBlobDetector();
-        mSpectrum = new Mat();
-        mBlobColorRgba = new Scalar(255);
-        mBlobColorHsv = new Scalar(255);
-        SPECTRUM_SIZE = new Size(200, 64);
+        //mDetector = new ColorBlobDetector();
+        textDetector = new DetectTextNative(am);
+        //mSpectrum = new Mat();
+        //mBlobColorRgba = new Scalar(255);
+        //mBlobColorHsv = new Scalar(255);
+        //SPECTRUM_SIZE = new Size(200, 64);
         CONTOUR_COLOR = new Scalar(255,0,0,255);
+        lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
     }
 
     public void onCameraViewStopped() {
         mRgba.release();
+        //finalizar detecccion
+        try {
+            textDetector.finalize();
+        } catch (Throwable throwable) {
+            Log.e(TAG, "Error finalizando");
+            throwable.printStackTrace();
+        }
+        Log.d(TAG, "Deteccion finalizada");
     }
 
-    public boolean onTouch(View v, MotionEvent event) {
+    /*public boolean onTouch(View v, MotionEvent event) {
         int cols = mRgba.cols();
         int rows = mRgba.rows();
 
@@ -127,16 +149,16 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
 
         //mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
 
-        /*Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
-                ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");*/
+        //Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
+        //        ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
 
         Log.i(TAG, "Touched hsv color: (" + mBlobColorHsv.val[0] + ", " + mBlobColorHsv.val[1] +
                 ", " + mBlobColorHsv.val[2] + ", " + mBlobColorHsv.val[3] + ")");
 
-        /*Point org;
-        org.x = x;
-        org.y = y;
-        putText(mRgba, mBlobColorHsv.val[2], , 1, 3, new Scalar(255, 255, 255));*/
+        //Point org;
+        //org.x = x;
+        //org.y = y;
+        //putText(mRgba, mBlobColorHsv.val[2], , 1, 3, new Scalar(255, 255, 255));
 
         mDetector.setHsvColor(mBlobColorHsv);
 
@@ -148,9 +170,26 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
         touchedRegionHsv.release();
 
         return false; // don't need subsequent touch events
+    }*/
+
+    public boolean onTouch(View v, MotionEvent event) {
+        int cols = mRgba.cols();
+        int rows = mRgba.rows();
+
+        int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
+        int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
+
+        int x = (int) event.getX() - xOffset;
+        int y = (int) event.getY() - yOffset;
+
+        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
+
+        textDetector.read(lang_read);
+
+        return false;
     }
 
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+    /*public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
 
         if (mIsColorSelected) {
@@ -165,17 +204,41 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
         }
 
         return mRgba;
+    }*/
+
+    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+        mRgba = inputFrame.rgba();
+
+        //Deteccion de texto (nativo c++)
+        textDetector.detect(mRgba.getNativeObjAddr());
+        int[] boxes = textDetector.getBoundingBoxes();
+
+        //Dibujar rectangulos
+        Rect[] boundingBoxes = new Rect[boxes.length/4];
+        int idx = 0;
+        for (int i = 0; i < boundingBoxes.length; i++) {
+            Rect box = new Rect(0, 0, 0, 0);
+            box.x = boxes[idx++];
+            box.y = boxes[idx++];
+            box.width = boxes[idx++];
+            box.height = boxes[idx++];
+            boundingBoxes[i] = box;
+
+            Core.rectangle(mRgba, boundingBoxes[i].tl(), boundingBoxes[i].br(), CONTOUR_COLOR, 1);
+        }
+
+        return mRgba;
     }
 
-    private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
+    /*private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
         Mat pointMatRgba = new Mat();
         Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
         Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
 
         return new Scalar(pointMatRgba.get(0, 0));
-    }
+    }*/
 
-    private static Rect findLargestRectangle(List<MatOfPoint> contours) {
+    /*private static Rect findLargestRectangle(List<MatOfPoint> contours) {
 
         double maxArea = -1;
         MatOfPoint temp_contour = contours.get(0);
@@ -200,5 +263,5 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
         Rect boundRect = Imgproc.boundingRect(mMOP1);
 
         return boundRect;
-    }
+    }*/
 }
