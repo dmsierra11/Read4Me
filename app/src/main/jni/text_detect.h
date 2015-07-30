@@ -1,8 +1,8 @@
 #ifndef _LITERATE_PR2_TEXT_DETECT_
 #define _LITERATE_PR2_TEXT_DETECT_
 
-//#include "com_googlecode_tesseract_android/src/api/baseapi.h"
-#include "tesseract-ocr/api/baseapi.h"
+#include "com_googlecode_tesseract_android/src/api/baseapi.h"
+//#include "tesseract-ocr/api/baseapi.h"
 
 #include <iostream>
 #include "opencv/cv.h"

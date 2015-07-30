@@ -225,7 +225,7 @@ public class EditPicActivity extends ActionBarActivity {
         DetectTextNative detectText = new DetectTextNative(am);
         detectText.detect(img.getNativeObjAddr());
         int[] boxes = detectText.getBoundingBoxes();
-        String text = detectText.read(lang_read);
+        //String text = detectText.read(lang_read);
         //finalizar detecccion
         Log.d(TAG, "Finalizando deteccion");
         try {
@@ -241,9 +241,9 @@ public class EditPicActivity extends ActionBarActivity {
         }
 
         //show bounding boxes
-        //Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
+        Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
         //OCR
-        //String text = imageProcessing.readPatches(boundingBoxes, lang_read);
+        String text = imageProcessing.readPatches(boundingBoxes, lang_read);
 
         //Segmentar imagen
         /*Log.d(TAG, "Numero de segmentos: "+boxes.length/4);

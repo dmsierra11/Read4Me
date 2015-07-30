@@ -937,7 +937,7 @@ float DetectText::ocrRead(const Mat& imagePatch, string& output, string name) {
     tess.Init(NULL, lang_);
     tess.SetImage((uchar*)imageFilter.data, imageFilter.size().width, imageFilter.size().height, imageFilter.channels(), imageFilter.step1());
     //tess.Recognize(0);
-    char* out = tess.GetUTF8Text();
+    char* out = tess.GetUTF8Text(NULL);
     
     //cout << "TESSERACT OUTPUT:  " << out << endl;
     
