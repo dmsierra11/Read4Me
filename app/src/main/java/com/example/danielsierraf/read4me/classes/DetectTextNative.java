@@ -1,4 +1,4 @@
-package com.example.danielsierraf.read4me;
+package com.example.danielsierraf.read4me.classes;
 
 import android.content.res.AssetManager;
 
@@ -24,7 +24,7 @@ public class DetectTextNative {
     private native void read(long detectPtr, String lang);
 
 	@Override
-	protected void finalize() throws Throwable {
+    public void finalize() throws Throwable {
 		if(detectPtr != 0) {
 			destroy(detectPtr);
 		}

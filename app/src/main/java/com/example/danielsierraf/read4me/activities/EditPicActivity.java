@@ -1,7 +1,6 @@
-package com.example.danielsierraf.read4me;
+package com.example.danielsierraf.read4me.activities;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,17 +16,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.net.Uri;
-import android.widget.ProgressBar;
 
-import org.opencv.core.Core;
+import com.example.danielsierraf.read4me.classes.DetectTextNative;
+import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.classes.ImageHandler;
+import com.example.danielsierraf.read4me.classes.ImageProcessing;
+import com.example.danielsierraf.read4me.R;
+
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 public class EditPicActivity extends ActionBarActivity {

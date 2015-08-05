@@ -1,8 +1,10 @@
-package com.example.danielsierraf.read4me;
+package com.example.danielsierraf.read4me.classes;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
+
+import com.example.danielsierraf.read4me.activities.MainActivity;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -15,7 +17,6 @@ import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 

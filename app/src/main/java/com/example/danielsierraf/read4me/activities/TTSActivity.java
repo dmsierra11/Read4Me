@@ -1,6 +1,5 @@
-package com.example.danielsierraf.read4me;
+package com.example.danielsierraf.read4me.activities;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.speech.tts.TextToSpeech;
@@ -10,6 +9,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+
+import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.R;
 
 import java.util.Locale;
 

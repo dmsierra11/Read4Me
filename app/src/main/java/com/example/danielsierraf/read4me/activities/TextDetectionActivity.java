@@ -1,18 +1,13 @@
-package com.example.danielsierraf.read4me;
+package com.example.danielsierraf.read4me.activities;
 
-import java.util.List;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.content.Context;
@@ -25,26 +20,24 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 
-public class ColorBlobDetectionActivity extends Activity implements OnTouchListener, CvCameraViewListener2 {
+import com.example.danielsierraf.read4me.classes.DetectTextNative;
+import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.R;
+
+public class TextDetectionActivity extends Activity implements OnTouchListener, CvCameraViewListener2 {
     private static final String  TAG = "ColorDetectionActivity";
 
-    //private boolean              mIsColorSelected = false;
-    private Mat                  mRgba;
-    //private Scalar               mBlobColorRgba;
-    //private Scalar               mBlobColorHsv;
-    //private ColorBlobDetector    mDetector;
+    private Mat mRgba;
     private DetectTextNative textDetector;
-    //private Mat                  mSpectrum;
-    //private Size                 SPECTRUM_SIZE;
-    private Scalar               CONTOUR_COLOR;
+    private Scalar CONTOUR_COLOR;
     private AssetManager am;
     private String lang_read;
     private Context context;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
-    public ColorBlobDetectionActivity() {
-        Log.i(TAG, "Instantiated new "+ ColorBlobDetectionActivity.class);
+    public TextDetectionActivity() {
+        Log.i(TAG, "Instantiated new "+ TextDetectionActivity.class);
     }
 
     static {
@@ -66,7 +59,7 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.enableView();
-        mOpenCvCameraView.setOnTouchListener(ColorBlobDetectionActivity.this);
+        mOpenCvCameraView.setOnTouchListener(TextDetectionActivity.this);
     }
 
     @Override
@@ -92,12 +85,7 @@ public class ColorBlobDetectionActivity extends Activity implements OnTouchListe
 
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
-        //mDetector = new ColorBlobDetector();
         textDetector = new DetectTextNative(am);
-        //mSpectrum = new Mat();
-        //mBlobColorRgba = new Scalar(255);
-        //mBlobColorHsv = new Scalar(255);
-        //SPECTRUM_SIZE = new Size(200, 64);
         CONTOUR_COLOR = new Scalar(255,0,0,255);
         lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
     }

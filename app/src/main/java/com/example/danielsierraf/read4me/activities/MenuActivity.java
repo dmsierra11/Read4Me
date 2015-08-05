@@ -1,4 +1,4 @@
-package com.example.danielsierraf.read4me;
+package com.example.danielsierraf.read4me.activities;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -10,7 +10,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
+
+import com.example.danielsierraf.read4me.classes.ImageHandler;
+import com.example.danielsierraf.read4me.R;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,7 +102,7 @@ public class MenuActivity extends ActionBarActivity {
     public void callRealTime(View v){
         //DO SOMETHING
         //Toast.makeText(this, "Called real time", Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(this, ColorBlobDetectionActivity.class);
+        Intent intent = new Intent(this, TextDetectionActivity.class);
         startActivity(intent);
     }
 

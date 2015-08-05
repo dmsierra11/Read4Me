@@ -1,4 +1,4 @@
-package com.example.danielsierraf.read4me;
+package com.example.danielsierraf.read4me.activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,15 +11,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.R;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 
-import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +52,7 @@ public class MainActivity extends ActionBarActivity {
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     //mOpenCvCameraView.enableView();
-                    //mOpenCvCameraView.setOnTouchListener(ColorBlobDetectionActivity.this);
+                    //mOpenCvCameraView.setOnTouchListener(TextDetectionActivity.this);
                 } break;
                 default:
                 {

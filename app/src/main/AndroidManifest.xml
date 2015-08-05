@@ -22,7 +22,7 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light" >
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,36 +31,36 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MenuActivity"
+            android:name=".activities.MenuActivity"
             android:label="@string/title_activity_menu"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".activities.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.danielsierraf.read4me.MainActivity" />
+                android:value=".activities.MainActivity" />
         </activity>
         <activity
-            android:name=".EditPicActivity"
+            android:name=".activities.EditPicActivity"
             android:label="@string/title_activity_edit_pic"
-            android:parentActivityName=".MenuActivity" >
+            android:parentActivityName=".activities.MenuActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.danielsierraf.read4me.MenuActivity" />
+                android:value=".activities.MenuActivity" />
         </activity>
         <activity
-            android:name=".ColorBlobDetectionActivity"
+            android:name=".activities.TextDetectionActivity"
             android:label="@string/title_activity_color_detect"
-            android:parentActivityName=".MenuActivity" >
+            android:parentActivityName=".activities.MenuActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.danielsierraf.read4me.MenuActivity" />
+                android:value=".activities.MenuActivity" />
         </activity>
         <activity
-            android:name=".TTSActivity"
+            android:name=".activities.TTSActivity"
             android:label="@string/title_activity_tts"
-            android:parentActivityName=".MenuActivity">
+            android:parentActivityName=".activities.MenuActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.danielsierraf.read4me.MenuActivity" />
+                android:value=".activities.MenuActivity" />
         </activity>
     </application>
 
