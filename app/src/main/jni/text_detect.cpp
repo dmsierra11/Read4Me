@@ -33,74 +33,6 @@ minLetterHeight_(0), textDisplayOffset_(1) {}
 
 DetectText::~DetectText() {}
 
-/* API for detect text from image */
-void DetectText::runDetection(string filename, char* lang) {
-    filename_ = filename;
-    originalImage_ = imread(filename_);
-    if (!originalImage_.data) {
-        //ROS_ERROR("Cannot read image input...");
-        return;
-    }
-    
-    double start_time1, start_time2;
-    double time_in_seconds1, time_in_seconds2;
-    start_time1 = clock();
-    start_time2 = clock();
-    
-    mode_ = IMAGE;
-    
-    int numcols = originalImage_.cols;
-    cout << "image size:" << numcols << "X" << originalImage_.rows << endl;
-    if (numcols < 1600) {
-        double scale;
-        if (numcols < 400) scale = 3;
-        else if (numcols >= 400 && numcols < 800) scale = 2.5;
-        else if (numcols >= 800 && numcols < 1200) scale = 2;
-        else scale = 1.5;
-        resize(originalImage_, originalImage_, Size(0,0), scale, scale, INTER_LANCZOS4);
-    }
-    cout << "image resized:" << originalImage_.cols << "X" << originalImage_.rows << endl;
-    
-    detect();
-    time_in_seconds1 = (clock() - start_time1) / (double)CLOCKS_PER_SEC;
-    cout << time_in_seconds1 << "s for detecting\n" << endl;
-    
-    string output = read(lang);
-    cout << "OUTPUT: " << output << endl;
-    time_in_seconds2 = (clock() - start_time2) / (double)CLOCKS_PER_SEC;
-    cout << time_in_seconds2 << "s total in process\n" << endl;
-}
-
-void DetectText::runDetection(Mat& image, char* lang) {
-    double start_time1, start_time2;
-    double time_in_seconds1, time_in_seconds2;
-    start_time1 = clock();
-    start_time2 = clock();
-    
-    mode_ = STREAM;
-    
-    int numcols = image.cols;
-    cout << "image size:" << image.cols << "X" << image.rows << endl;
-    if (numcols < 1600) {
-        double scale;
-        if (numcols < 400) scale = 3;
-        else if (numcols >= 400 && numcols < 800) scale = 2.5;
-        else if (numcols >= 800 && numcols < 1200) scale = 2;
-        else scale = 1.5;
-        resize(image, image, Size(0,0), scale, scale, INTER_LANCZOS4);
-    }
-    cout << "image resized:" << image.cols << "X" << image.rows << endl;
-    
-    detect(image);
-    time_in_seconds1 = (clock() - start_time1) / (double)CLOCKS_PER_SEC;
-    cout << time_in_seconds1 << "s for detecting\n" << endl;
-    
-    string output = read(lang);
-    cout << "OUTPUT: " << output << endl;
-    time_in_seconds2 = (clock() - start_time2) / (double)CLOCKS_PER_SEC;
-    cout << time_in_seconds2 << "s total in process\n" << endl;
-}
-
 /* getters */
 Mat&
 DetectText::getDetection() {
@@ -115,6 +47,11 @@ DetectText::getWords() {
 vector<Rect>&
 DetectText::getBoundingBoxes(){
     return boundingBoxes_;
+}
+
+vector<Rect>&
+DetectText::getBoxesWords(){
+    return boxesBothSides_;
 }
 /* internal process */
 void DetectText::detect() {
@@ -135,6 +72,7 @@ void DetectText::detect() {
     
     overlapBoundingBoxes(boundingBoxes_);
     showBoundingBoxes(boundingBoxes_);
+    
 }
 
 void DetectText::detect(Mat& image) {
@@ -156,18 +94,26 @@ void DetectText::detect(Mat& image) {
     
     overlapBoundingBoxes(boundingBoxes_);
     //showBoundingBoxes(boundingBoxes_);
+    
+    /*Mat resultResized;
+    resultResized.create(image.rows,image.cols, CV_8UC3);
+    resize(detection_, resultResized, resultResized.size(), 0, 0, INTER_CUBIC);
+    
+    image = resultResized;*/
 }
 
-const char* DetectText::read(const char* lang){
+void DetectText::read(const char* lang){
     lang_ = lang;
     printf ("Reading native in %s \n", lang_ );
-    ocrRead(boundingBoxes_);
+    vector<Mat> segments = segment(boundingBoxes_);
+    applySVM(segments);
+    //ocrRead(boundingBoxes_);
+    //ocrRead(boxesBothSides_);
+    //showBoundingBoxes(boxesBothSides_);
+    //showBoundingBoxes(boundingBoxes_);
     //overlayText(boxesBothSides_, wordsBothSides_);
     
     textDisplayOffset_ = 1;
-    
-    const char *cstr = recognizedText_.c_str();
-    return cstr;
 }
 
 vector<Rect>&
@@ -238,45 +184,45 @@ void DetectText::pipeline(int blackWhite) {
     } else if (blackWhite == -1) {
         fontColor_ = DARK;
     } else {
-        //cout << "blackwhite should only be +/-1" << endl;
+        cout << "blackwhite should only be +/-1" << endl;
         assert(false);
     }
     // initialize swtmap with large values
     double start_time;
     double time_in_seconds;
-
-    //start_time = clock();
+    
+    start_time = clock();
     Mat swtmap(image_.size(), CV_32FC1, Scalar(initialStrokeWidth_));
     strokeWidthTransform(image_, swtmap, blackWhite);
     //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
     //cout << time_in_seconds << "s in strokeWidthTransform" << endl;
     
-    //start_time = clock();
+    start_time = clock();
     Mat ccmap(image_.size(), CV_32FC1, Scalar(-1));
     componentsRoi_.clear();
     nComponent_ = connectComponentAnalysis(swtmap, ccmap);
     //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
     //cout << time_in_seconds << "s in connectComponentAnalysis" << endl;
     
-    //start_time = clock();
+    start_time = clock();
     identifyLetters(swtmap, ccmap);
     //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
     //cout << time_in_seconds << "s in identifyLetters" << endl;
     
-    //start_time = clock();
+    start_time = clock();
     groupLetters(swtmap, ccmap);
     //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
     //cout << time_in_seconds << "s in groupLetters" << endl;
     
-    //start_time = clock();
+    start_time = clock();
     chainPairs(ccmap);
     //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
     //cout << time_in_seconds << "s in chainPairs" << endl;
 
-    //showEdgeMap();
-    //showSwtmap(swtmap);
-    //showCcmap(ccmap);
-    //showLetterGroup();
+    showEdgeMap();
+    showSwtmap(swtmap);
+    showCcmap(ccmap);
+    showLetterGroup();
     //showLetterDetection();
     
     disposal();
@@ -881,6 +827,20 @@ void DetectText::overlayText(vector<Rect>& box, vector<string>& text) {
     
 }
 
+Mat resizeImage(const Mat& patch, int height, int width, double scale){
+    Mat resultResized;
+    if (scale == 0) {
+        resultResized.create(height,width, CV_8UC3);
+        resize(patch, resultResized, resultResized.size(), 0, 0, INTER_CUBIC);
+    } else {
+        height = patch.rows*scale;
+        width = patch.cols*scale;
+        resultResized.create(height,width, CV_8UC3);
+        resize(patch, resultResized, resultResized.size(), 0, 0, INTER_CUBIC);
+    }
+    return resultResized;
+}
+
 void DetectText::ocrRead(vector<Rect>& boundingBoxes) {
     sort(boundingBoxes.begin(), boundingBoxes.end(), DetectText::spaticalOrder);
     recognizedText_ = "";
@@ -889,7 +849,8 @@ void DetectText::ocrRead(vector<Rect>& boundingBoxes) {
         stringstream ss;
         string s;
         ss << "patches/" << i;
-        s = ss.str() + ".tiff";
+        //s = ss.str() + ".tiff";
+        s = ss.str() + ".png";
         //float score = ocrRead(originalImage_(boundingBoxes[i]), result, s);
         float score = ocrRead(image_(boundingBoxes[i]), result, s);
         
@@ -904,9 +865,9 @@ void DetectText::ocrRead(vector<Rect>& boundingBoxes) {
         recognizedText_ += result;
 
         //if (score > 0) {
-            boxesBothSides_.push_back(boundingBoxes[i]);
+            //boxesBothSides_.push_back(boundingBoxes[i]);
             wordsBothSides_.push_back(result);
-            boxesScores_.push_back(score);
+            //boxesScores_.push_back(score);
         //}
     }
     /*stringstream ss2;
@@ -916,28 +877,34 @@ void DetectText::ocrRead(vector<Rect>& boundingBoxes) {
 }
 
 float DetectText::ocrRead(const Mat& imagePatch, string& output, string name) {
-    float score = 0;
-    Mat scaledImage;
-    //cout << "Image patch rows: " << imagePatch.rows << endl;
-    /*if (imagePatch.rows < 30)
+    cout << "Image patch rows: " << imagePatch.rows << endl;
+    if (imagePatch.rows < 50)
     {
         double scale = 1.5;
-        resize(imagePatch, imagePatch, Size(0,0),
-        scale, scale, INTER_LANCZOS4);
+        //resize(imagePatch, imagePatch, Size(0,0),
+        //scale, scale, INTER_LANCZOS4);
         //imwrite(name, imagePatch);
-    }*/
-    
+        Mat scaledImage = resizeImage(imagePatch, 0, 0, scale);
+        cout << "Resized patch: "<< scaledImage.cols << "x" << scaledImage.rows << endl;
+        return readPatch(scaledImage, output, name);
+    }
+
+    return readPatch(imagePatch, output, name);
+}
+
+float DetectText::readPatch(const Mat& imagePatch, string& output, string name){
+    float score = 0;
     Mat imageFilter = filterPatch(imagePatch);
     if (mode_ == IMAGE) {
         imwrite(name, imageFilter);
     }
     
     //basic
-    tesseract::TessBaseAPI tess;
+    /*tesseract::TessBaseAPI tess;
     tess.Init(NULL, lang_);
     tess.SetImage((uchar*)imageFilter.data, imageFilter.size().width, imageFilter.size().height, imageFilter.channels(), imageFilter.step1());
     //tess.Recognize(0);
-    char* out = tess.GetUTF8Text(NULL);
+    char* out = tess.GetUTF8Text();
     
     //cout << "TESSERACT OUTPUT:  " << out << endl;
     
@@ -956,12 +923,85 @@ float DetectText::ocrRead(const Mat& imagePatch, string& output, string name) {
         score += spellCheck(tokens[i], tempOutput, 2);
         //score += spellCheck(tokens[i], tempOutput, 3);
         output += tempOutput;
-    }
+    }*/
     
     //output = out;
-    //cout << "FINAL OUTPUT: " << output << endl;*/
+    //cout << "FINAL OUTPUT: " << output << endl;
     
     return score;
+}
+
+Mat DetectText::equalize(const Mat& patch){
+    //Equalize croped image
+    Mat grayResult;
+    cvtColor(patch, grayResult, CV_BGR2GRAY);
+    blur(grayResult, grayResult, Size(3,3));
+    //grayResult=histeq(grayResult);
+    equalizeHist(grayResult, grayResult);
+    return grayResult;
+}
+
+vector<Mat> DetectText::segment(vector<Rect>& boundingBoxes){
+    sort(boundingBoxes.begin(), boundingBoxes.end(), DetectText::spaticalOrder);
+    vector<Mat> segments;
+    for (size_t i = 0; i < boundingBoxes.size(); i++) {
+        Mat result = equalize(originalImage_(boundingBoxes[i]));
+        Mat scaled = resizeImage(result, 60, 320, 0);
+        segments.push_back(scaled);
+        
+        if (mode_ == IMAGE) {
+            string result;
+            stringstream ss;
+            string s;
+            ss << "patches/" << i;
+            s = ss.str() + ".tiff";
+            imwrite(s, scaled);
+        }
+    }
+    
+    return segments;
+}
+
+void DetectText::applySVM(vector<Mat>& segments){
+    //SVM for each plate region to get valid car plates
+    //Read file storage.
+    FileStorage fs;
+    //fs.open("SVM.xml", FileStorage::READ);
+    fs.open("/storage/emulated/0/Read4Me/SVM.xml", FileStorage::READ);
+    Mat SVM_TrainingData;
+    Mat SVM_Classes;
+    fs["TrainingData"] >> SVM_TrainingData;
+    fs["classes"] >> SVM_Classes;
+    //Set SVM params
+    CvSVMParams SVM_params;
+    SVM_params.svm_type = CvSVM::C_SVC;
+    SVM_params.kernel_type = CvSVM::LINEAR; //CvSVM::LINEAR;
+    SVM_params.degree = 0;
+    SVM_params.gamma = 1;
+    SVM_params.coef0 = 0;
+    SVM_params.C = 1;
+    SVM_params.nu = 0;
+    SVM_params.p = 0;
+    SVM_params.term_crit = cvTermCriteria(CV_TERMCRIT_ITER, 1000, 0.01);
+    //Train SVM
+    CvSVM svmClassifier(SVM_TrainingData, SVM_Classes, Mat(), Mat(), SVM_params);
+    
+    //Classify words or no words
+    vector<Rect> posible_regions = boundingBoxes_;
+    sort(posible_regions.begin(), posible_regions.end(), DetectText::spaticalOrder);
+    for(int i=0; i< segments.size(); i++)
+    {
+        
+        Mat img=segments[i];
+        Mat p= img.reshape(1, 1);
+        p.convertTo(p, CV_32FC1);
+        
+        int response = (int)svmClassifier.predict( p );
+        cout << "Response: " << response << endl;
+        if(response==1)
+            boxesBothSides_.push_back(posible_regions[i]);
+        //cout << "Number of words: " << boxesBothSides_.size() << endl;
+    }
 }
 
 // two option: 1 for aspell, 2 for correlation edit distance
@@ -1144,9 +1184,8 @@ Mat DetectText::filterPatch(const Mat& patch) {
     //Binarisation
     //FOR LIGHT BACKGROUND
     threshold(patch, patch, 0, 255, THRESH_BINARY | CV_THRESH_OTSU);
-    //threshold(resultResized, resultResized, 0, 255, THRESH_BINARY | CV_THRESH_OTSU);
     //FOR DARK BACKGROUND
-    //threshold(imagePatch, imagePatch, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
+    //threshold(patch, patch, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
     
     //Noise removal
     //GaussianBlur(patch, patch, cv::Size(5,5), 5);
@@ -1169,7 +1208,7 @@ Mat DetectText::filterPatch(const Mat& patch) {
     morphologyEx( patch, patch, operation, element );
     //morphologyEx( resultResized, resultResized, operation, element );
     
-    
+    //cout << "Image size: " << patch.cols << "x" << patch.rows << endl;
     result = patch;
     //result = resultResized;
     return result;
@@ -1395,6 +1434,7 @@ void DetectText::showLetterDetection() {
                 string s;
                 ss << "tmpChars/" << i;
                 s = ss.str() + ".tiff";
+                //s = ss.str() + ".png";
                 imwrite(s, originalImage_(*itr));
             }
         }

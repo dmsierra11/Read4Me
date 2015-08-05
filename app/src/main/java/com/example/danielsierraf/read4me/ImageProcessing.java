@@ -15,7 +15,9 @@ import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by danielsierraf on 4/20/15.
@@ -112,6 +114,15 @@ public class ImageProcessing {
         //return src;
     }
 
+    public Mat resizeImage(Mat img, double x, double y){
+        Size size = new Size(x, y); //the dst image size,e.g.100x100
+        //Mat dst = new Mat();
+        Log.d(TAG, "Image size: "+img.rows()+"x"+img.cols());
+        Imgproc.resize(img, img, size);//resize image
+        Log.d(TAG, "New image size: "+img.rows()+"x"+img.cols());
+        return img;
+    }
+
     //File handling
     public boolean writeImage(String filename){
         //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -198,46 +209,6 @@ public class ImageProcessing {
         return img;
     }
 
-    /*public ArrayList<Mat> segment(int[] boxes){
-        Log.d(TAG, "Segmenting...");
-        Mat img = src.clone();
-        Log.d(TAG, "cloned");
-        ArrayList<Mat> segments = new ArrayList<Mat>();
-        Rect[] boundingBoxes = new Rect[boxes.length/4];
-        Log.d(TAG, "BOXES "+boundingBoxes.length);
-        int idx = 0;
-        for (int i = 0; i < boundingBoxes.length; i++) {
-            Rect box = new Rect(0, 0, 0, 0);
-            box.x = boxes[idx++];
-            box.y = boxes[idx++];
-            box.width = boxes[idx++];
-            box.height = boxes[idx++];
-            boundingBoxes[i] = box;
-
-            Mat ROI = img.submat(box.y, box.y + box.height, box.x, box.x + box.width);
-            Log.d(TAG, "Segment "+i+" COLS: "+ROI.cols()+" ROWS: "+ROI.rows());
-            ROI = otsuThreshold(ROI);
-            Log.d(TAG, "Thresholded");
-            Mat filtered = MorphologyTransformation(ROI);
-            Log.d(TAG, "Morphology transformed");
-            segments.add(filtered);
-
-            if (MainActivity.TEST_MODE) {
-                Log.d(TAG, "Writing segment.." + i);
-                writeSegment(filtered, "" + i);
-            }
-
-            Core.rectangle(img, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
-        }
-
-        if (MainActivity.TEST_MODE){
-            writeSegment(img, "detecccion");
-            Log.d(TAG, "Se escribio la imagen en la carpeta de la aplicacion");
-        }
-
-        return segments;
-    }*/
-
     public Rect[] getBoundingBoxes(int[] boxes){
         Log.d(TAG, "Segmenting...");
         Mat img = src.clone();
@@ -266,7 +237,7 @@ public class ImageProcessing {
     }
 
     public String readPatches(Rect[] boundingBoxes, String lang_read){
-
+        Log.d(TAG, "Reading "+boundingBoxes.length+ "boxes");
         String text = "";
         for (int i=0; i < boundingBoxes.length; i++){
             Rect box = boundingBoxes[i];
@@ -294,5 +265,29 @@ public class ImageProcessing {
         }
 
         return text;
+    }
+
+    Mat equalize(Mat patch){
+        //Equalize croped image
+        Mat grayResult = new Mat();
+        Imgproc.cvtColor(patch, grayResult, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.blur(grayResult, grayResult, new Size(3, 3));
+        //grayResult=histeq(grayResult);
+        Imgproc.equalizeHist(grayResult, grayResult);
+        return grayResult;
+    }
+
+    ArrayList<Mat> segment(List<Rect> boundingBoxes){
+        //sort(boundingBoxes.begin(), boundingBoxes.end(), DetectText::spaticalOrder);
+        ArrayList<Mat> segments = new ArrayList<>();
+        for (int i = 0; i < boundingBoxes.size(); i++) {
+            Rect box = boundingBoxes.get(i);
+            Mat ROI = src.submat(box.y, box.y + box.height, box.x, box.x + box.width);
+            Mat result = equalize(ROI);
+            Mat scaled = resizeImage(result, 320, 60);
+            segments.add(scaled);
+        }
+
+        return segments;
     }
 }

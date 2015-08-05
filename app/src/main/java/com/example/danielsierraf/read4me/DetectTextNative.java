@@ -19,8 +19,9 @@ public class DetectTextNative {
 	private native long create();
 	private native void destroy(long detectPtr);
     private native int[] getBoundingBoxes(long detectPtr);
+    private native int[] getBoxesWords(long detectPtr);
     private native void detect(long detectPtr, long matAddress);
-    private native String read(long detectPtr, String lang);
+    private native void read(long detectPtr, String lang);
 
 	@Override
 	protected void finalize() throws Throwable {
@@ -34,12 +35,14 @@ public class DetectTextNative {
         return getBoundingBoxes(detectPtr);
     }
 
+    public int[] getBoxesWords() {
+        return getBoxesWords(detectPtr);
+    }
+
     public void detect(long matAddress){
         detect(detectPtr, matAddress);
     }
 
-    public String read(String lang){
-        return read(detectPtr, lang);
-    }
+    public void read(String lang){  read(detectPtr, lang); }
 
 }

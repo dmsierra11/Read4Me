@@ -55,6 +55,33 @@ extern "C" {
         return result;
     }
 
+    JNIEXPORT jintArray JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_getBoxesWords
+            	    (JNIEnv* env, jobject jobj, jlong detectPtr) {
+
+            vector<Rect> boundingBoxes = toDetectTextNative(detectPtr)->getBoxesWords();
+            LOGD("Create new int array");
+            jintArray result = env->NewIntArray(boundingBoxes.size() * 4);
+
+            if (result == NULL) {
+                return NULL;
+            }
+
+            LOGD("bounding boxes");
+            jint tmp_arr[boundingBoxes.size() * 4];
+
+            int idx = 0;
+            for (int i = 0; i < boundingBoxes.size(); i++) {
+                tmp_arr[idx++] = boundingBoxes[i].x;
+            	tmp_arr[idx++] = boundingBoxes[i].y;
+            	tmp_arr[idx++] = boundingBoxes[i].width;
+            	tmp_arr[idx++] = boundingBoxes[i].height;
+            }
+
+            env->SetIntArrayRegion(result, 0, boundingBoxes.size() * 4, tmp_arr);
+            LOGD("Return result");
+            return result;
+        }
+
 	/*JNIEXPORT jintArray JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_getBoundingBoxes
 	    (JNIEnv* env, jobject jobj, jlong detectPtr, jlong matAddress) {
 
@@ -93,16 +120,12 @@ extern "C" {
         LOGD("Finish detecting");
     }
 
-    JNIEXPORT jstring JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_read
+    JNIEXPORT void JNICALL Java_com_example_danielsierraf_read4me_DetectTextNative_read
         	    (JNIEnv* env, jobject jobj, jlong detectPtr, jstring lang){
         const char *nativeString = (env)->GetStringUTFChars(lang, 0);
         // use your string
         LOGD("Reading...");
-        const char* str = toDetectTextNative(detectPtr)->read(nativeString);
-        LOGD("Finish reading");
-        (env)->ReleaseStringUTFChars(lang, nativeString);
-        LOGD("UTF realeased");
-        return (env)->NewStringUTF(str);
+        toDetectTextNative(detectPtr)->read(nativeString);
     }
 
 }

@@ -29,6 +29,9 @@ public class MainActivity extends ActionBarActivity {
 
 
     public final static boolean TEST_MODE = true;
+    public final static String appFolder = new FileHandler().getExternalStorageDir("Read4Me").getPath();
+    //public final static SVM svmClassifier = new SVM();
+
     private final String TAG = "MainActivity";
 
     private String lang;
@@ -36,6 +39,10 @@ public class MainActivity extends ActionBarActivity {
     private String countryISO3;
     private Spinner spinner1;
     private Spinner spinner2;
+
+    static {
+        System.loadLibrary("opencv_java");
+    }
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -69,6 +76,9 @@ public class MainActivity extends ActionBarActivity {
         Log.d(TAG, "Language: "+lang);
         Log.d(TAG, "Language ISO3: "+langISO3);
         Log.d(TAG, "Country ISO3: "+countryISO3);
+
+        //TODO: Thread to train and copy tessdata
+
 
         setContentView(R.layout.activity_main);
 

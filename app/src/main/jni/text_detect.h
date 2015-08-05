@@ -1,12 +1,14 @@
 #ifndef _LITERATE_PR2_TEXT_DETECT_
 #define _LITERATE_PR2_TEXT_DETECT_
 
-#include "com_googlecode_tesseract_android/src/api/baseapi.h"
-//#include "tesseract-ocr/api/baseapi.h"
+//#include "com_googlecode_tesseract_android/src/api/baseapi.h"
 
 #include <iostream>
 #include "opencv/cv.h"
 #include "opencv/highgui.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/ml/ml.hpp>
 
 using namespace cv;
 using namespace std;
@@ -18,10 +20,8 @@ public:
 	~DetectText();
 
 	/* API */
-	void runDetection(string filename, char* lang);
-	void runDetection(Mat& image, char* lang);
     void detect(Mat& image);
-    const char* read(const char* lang);
+    void read(const char* lang);
 
 	/* read useful files  */
 	void readLetterCorrelation(const char* filename);
@@ -36,6 +36,8 @@ public:
 	Mat& getDetection();
     
     vector<Rect>& getBoundingBoxes();
+
+    vector<Rect>& getBoxesWords();
 
 	vector<Rect>& getBoundingBoxes(Mat& image);
 
@@ -139,7 +141,15 @@ private:
 
 	float spellCheck(string& str,string& output, int method);
 
-	Mat filterPatch(const Mat& patch);	
+	Mat filterPatch(const Mat& patch);
+    
+    float readPatch(const Mat& imagePatch, string& output, string name);
+    
+    Mat equalize(const Mat& patch);
+    
+    vector<Mat> segment(vector<Rect>& boundingBoxes);
+    
+    void applySVM(vector<Mat>& segments);
 
 	// helper functions
 	int ImageAdjust(IplImage* src, IplImage* dst,

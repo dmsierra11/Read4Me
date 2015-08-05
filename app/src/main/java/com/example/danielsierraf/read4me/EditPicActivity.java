@@ -26,6 +26,8 @@ import org.opencv.core.Scalar;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class EditPicActivity extends ActionBarActivity {
@@ -179,39 +181,6 @@ public class EditPicActivity extends ActionBarActivity {
         startActivity( Intent.createChooser(intent, getString(R.string.photo_send_chooser_title)));
     }
 
-    /*public void readText(View v){
-        Context context = getApplicationContext();
-
-        String lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
-        //String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
-        Log.d(TAG, "Reading in "+lang_read);
-        //Log.d(TAG, "Hearing "+lang_hear);
-        //ProgressBar progressBar = (ProgressBar) findViewById(R.id.progress);
-        //progressBar.setVisibility(View.VISIBLE);
-
-        //Image processing
-        ImageProcessing imageProcessing = new ImageProcessing(context);
-        imageProcessing.setMatGray(mDataPath);
-        //image = imageProcessing.resizeImage(3000, 3000);
-        //imageProcessing.resizeImage(2550, 2550);
-        imageProcessing.otsuThreshold();
-        Bitmap bmp = imageProcessing.getMatBitmap();
-        imageProcessing.writeImage();
-
-        Log.d(TAG, "Bitmap: "+bmp);
-
-        //OCR
-        OCR ocr = new OCR(context);
-        ocr.setLanguage(lang_read);
-        String text = ocr.recognizeText(bmp);
-        Log.d(TAG, "Text: "+text);
-        //progressBar.setVisibility(View.INVISIBLE);
-
-        Intent intent = new Intent(this, TTSActivity.class);
-        intent.putExtra(TTSActivity.EXTRA_TEXT, text);
-        startActivity(intent);
-    }*/
-
     public void readText(View v){
         context = getApplicationContext();
         am = getAssets();
@@ -224,8 +193,9 @@ public class EditPicActivity extends ActionBarActivity {
         //Deteccion de texto (nativo c++)
         DetectTextNative detectText = new DetectTextNative(am);
         detectText.detect(img.getNativeObjAddr());
-        int[] boxes = detectText.getBoundingBoxes();
-        //String text = detectText.read(lang_read);
+        detectText.read(lang_read);
+        int[] boxes = detectText.getBoxesWords();
+
         //finalizar detecccion
         Log.d(TAG, "Finalizando deteccion");
         try {
@@ -245,27 +215,10 @@ public class EditPicActivity extends ActionBarActivity {
         //OCR
         String text = imageProcessing.readPatches(boundingBoxes, lang_read);
 
-        //Segmentar imagen
-        /*Log.d(TAG, "Numero de segmentos: "+boxes.length/4);
-        ArrayList<Mat> segments = imageProcessing.segment(boxes);
-
-        //OCR
-        String text = "";
-        Bitmap bmp = null;
-        for (int i = 0; i < segments.size(); i++){
-            bmp = getMatBitmap(segments.get(i));
-            OCR ocr = new OCR(context);
-            ocr.setLanguage(lang_read);
-            text = text + ocr.recognizeText(bmp) + " ";
-            Log.d(TAG, "Text: "+text);
-            //progressBar.setVisibility(View.INVISIBLE);
-        }*/
-
-
-        /*Intent intent = new Intent(this, TTSActivity.class);
-        intent.putExtra(TTSActivity.EXTRA_TEXT, text);
-        startActivity(intent);*/
         Log.d(TAG, text);
+        Intent intent = new Intent(this, TTSActivity.class);
+        intent.putExtra(TTSActivity.EXTRA_TEXT, text);
+        startActivity(intent);
     }
 
     private void setPic() {
