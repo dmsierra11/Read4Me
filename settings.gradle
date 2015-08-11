@@ -1,3 +1,4 @@
-include ':app'
+include ':app', ':lab5_AsyncTaskLab', ':threadingAsyncTask'
 include ':openCVLibrary2410'
 include ':tess-two'
+include ':fragmentDynamicLayoutWithActionBar'

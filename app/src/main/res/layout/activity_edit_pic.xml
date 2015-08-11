@@ -27,16 +27,17 @@
             android:paddingEnd="@dimen/activity_vertical_margin"
             android:onClick="readText"
             android:text="@string/read_text"
-            android:background="#3E4E76"
+            android:background="#26bcd4"
             android:textColor="#FFFFFF"/>
     </LinearLayout>
 
     <ProgressBar
-        android:id="@+id/progress"
-        style="@style/GenericProgressIndicator"
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:layout_gravity="center_vertical|center_horizontal"
-        android:visibility="gone" />
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBarImgProc"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"/>
 
 </RelativeLayout>

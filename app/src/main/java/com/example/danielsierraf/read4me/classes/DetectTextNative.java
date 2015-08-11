@@ -8,6 +8,7 @@ public class DetectTextNative {
         System.loadLibrary("lept");
         System.loadLibrary("tess");
 		System.loadLibrary("run_detection");
+        System.loadLibrary("opencv_java");
 	}
 	
 	private long detectPtr = 0;

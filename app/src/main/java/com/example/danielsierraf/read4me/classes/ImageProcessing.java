@@ -17,46 +17,43 @@ import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Created by danielsierraf on 4/20/15.
+ * Created by danielsierraf on 8/7/15.
  */
 public class ImageProcessing {
 
-    public static final String TAG = "ImageProcessing";
     public static final String appName = "Read4Me";
-    private static final Scalar TEXT_RECT_COLOR     = new Scalar(0, 255, 0, 255);
+    public static final String TAG = "ImageProcessing";
+    private static final Scalar TEXT_RECT_COLOR = new Scalar(0, 255, 0, 255);
 
-    private Context context;
+    private Context mContext;
     private Mat src;
-    //private ArrayList<Mat> segments;
+
+    static {
+        System.loadLibrary("opencv_java");
+    }
 
     //Constructors
     public ImageProcessing(Context context){
-        this.context = context;
+        this.mContext = context;
         src = new Mat();
-        //segments = new ArrayList<Mat>();
     }
 
     public ImageProcessing(Context context, String path){
-        this.context = context;
+        this.mContext = context;
         src = Highgui.imread(path, 1);
-        //segments = new ArrayList<Mat>();
         preprocess();
     }
 
     public ImageProcessing(Context context, Mat img){
-        this.context = context;
-        //segments = new ArrayList<Mat>();
+        this.mContext = context;
         setMat(img);
     }
 
     //Setters
     public void setMat(Mat img) {
         src = img;
-        preprocess();
     }
 
     //Getters
@@ -79,7 +76,7 @@ public class ImageProcessing {
         if (img != null && !img.empty()){
             bmp = Bitmap.createBitmap(img.cols(), img.rows(),Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(img, bmp);
-            Log.d(TAG, "Seteo Bitmap "+bmp.toString());
+            Log.d(TAG, "Seteo Bitmap " + bmp.toString());
         }
         return bmp;
     }
@@ -97,15 +94,6 @@ public class ImageProcessing {
         }
     }
 
-    private void resizeImage(double x, double y) {
-        Size size = new Size(x, y); //the dst image size,e.g.100x100
-        //Mat dst = new Mat();
-        Log.d(TAG, "Image size: "+src.rows()+"x"+src.cols());
-        Imgproc.resize(src, src, size);//resize image
-        Log.d(TAG, "New image size: "+src.rows()+"x"+src.cols());
-        //return src;
-    }
-
     private void resizeImage(double scale) {
         Size size = new Size(0, 0); //the dst image size,e.g.100x100
         //Mat dst = new Mat();
@@ -115,23 +103,15 @@ public class ImageProcessing {
         //return src;
     }
 
-    public Mat resizeImage(Mat img, double x, double y){
-        Size size = new Size(x, y); //the dst image size,e.g.100x100
-        //Mat dst = new Mat();
-        Log.d(TAG, "Image size: "+img.rows()+"x"+img.cols());
-        Imgproc.resize(img, img, size);//resize image
-        Log.d(TAG, "New image size: "+img.rows()+"x"+img.cols());
-        return img;
-    }
-
     //File handling
-    public boolean writeImage(String filename){
+    private boolean writeImage(String filename){
         //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         String ext = ".png";
         filename = filename+ext;
         //String filename = "threshold0-Gauss.png";
         //File file = new File(pic_path, filename);
         //File file = new File(new FileHandler().getAlbumPublicStorageDir("Read4Me", ""), filename);
+        //File file = new File(new FileHandler().getExternalStorageDir(MainActivity.appFolder), filename);
         File file = new File(new FileHandler().getExternalStorageDir(appName), filename);
 
         Boolean bool = null;
@@ -139,7 +119,7 @@ public class ImageProcessing {
         bool = Highgui.imwrite(filename, src);
 
         if (bool == true)
-            Log.d(TAG, "SUCCESS writing image to external storage on "+filename);
+            Log.d(TAG, "SUCCESS segment image to external storage on "+filename);
         else {
             Log.d(TAG, "Fail writing image to external storage");
             return false;
@@ -148,6 +128,7 @@ public class ImageProcessing {
         return true;
     }
 
+    //File handling
     private boolean writeSegment(Mat segment, String filename){
         //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         String ext = ".png";
@@ -155,6 +136,7 @@ public class ImageProcessing {
         //String filename = "threshold0-Gauss.png";
         //File file = new File(pic_path, filename);
         //File file = new File(new FileHandler().getAlbumPublicStorageDir("Read4Me", ""), filename);
+        //File file = new File(new FileHandler().getExternalStorageDir(MainActivity.appFolder), filename);
         File file = new File(new FileHandler().getExternalStorageDir(appName), filename);
 
         Boolean bool = null;
@@ -171,18 +153,7 @@ public class ImageProcessing {
         return true;
     }
 
-    /*public void otsuThreshold(){
-        Log.d(TAG, "Threshold Gaussian");
-        //Mat threshold = new Mat();
-        Mat blur = new Mat();
-        Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.GaussianBlur(src, blur, new Size(5,5), 0);
-        //Imgproc.threshold(blur, threshold, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
-        Imgproc.threshold(blur, src, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
-        //writeImage(src);
-        //return threshold;
-    }*/
-
+    //Image Processing
     public Mat otsuThreshold(Mat img){
         Log.d(TAG, "Threshold");
         Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
@@ -228,6 +199,7 @@ public class ImageProcessing {
             Core.rectangle(img, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
         }
 
+        Log.d(TAG, "Test Mode: "+MainActivity.TEST_MODE);
         if (MainActivity.TEST_MODE){
             writeSegment(img, "detecccion");
             Log.d(TAG, "Se escribio la imagen en la carpeta de la aplicacion");
@@ -248,7 +220,6 @@ public class ImageProcessing {
             Log.d(TAG, "Thresholded");
             Mat filtered = MorphologyTransformation(ROI);
             Log.d(TAG, "Morphology transformed");
-            //segments.add(ROI);
 
             if (MainActivity.TEST_MODE) {
                 Log.d(TAG, "Writing segment.." + i);
@@ -258,37 +229,17 @@ public class ImageProcessing {
 
             //OCR
             Bitmap bmp = getMatBitmap(filtered);
-            OCR ocr = new OCR(context);
+            OCR ocr = new OCR(mContext);
             ocr.setLanguage(lang_read);
             text = text + ocr.recognizeText(bmp) + " ";
             Log.d(TAG, "Text: "+text);
-            //progressBar.setVisibility(View.INVISIBLE);
+        }
+
+        if (MainActivity.TEST_MODE){
+            writeImage("original");
         }
 
         return text;
     }
 
-    Mat equalize(Mat patch){
-        //Equalize croped image
-        Mat grayResult = new Mat();
-        Imgproc.cvtColor(patch, grayResult, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.blur(grayResult, grayResult, new Size(3, 3));
-        //grayResult=histeq(grayResult);
-        Imgproc.equalizeHist(grayResult, grayResult);
-        return grayResult;
-    }
-
-    ArrayList<Mat> segment(List<Rect> boundingBoxes){
-        //sort(boundingBoxes.begin(), boundingBoxes.end(), DetectText::spaticalOrder);
-        ArrayList<Mat> segments = new ArrayList<>();
-        for (int i = 0; i < boundingBoxes.size(); i++) {
-            Rect box = boundingBoxes.get(i);
-            Mat ROI = src.submat(box.y, box.y + box.height, box.x, box.x + box.width);
-            Mat result = equalize(ROI);
-            Mat scaled = resizeImage(result, 320, 60);
-            segments.add(scaled);
-        }
-
-        return segments;
-    }
 }

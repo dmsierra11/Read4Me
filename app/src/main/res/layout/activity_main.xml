@@ -25,14 +25,14 @@
         android:layout_height="50dp"
         android:id="@+id/bottom_bar_main"
         android:layout_alignParentBottom="true"
-        android:background="#3E4E76">
+        android:background="#26bcd4">
 
         <Button
             android:id="@+id/btnSubmit"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="@string/button_send"
-            android:background="#3E4E76"
+            android:background="#26bcd4"
             android:textColor="#FFFFFF"
             android:gravity="fill_vertical|end"
             android:textColorHighlight="#FFCC66"

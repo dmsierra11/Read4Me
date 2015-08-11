@@ -1,48 +1,41 @@
 package com.example.danielsierraf.read4me.activities;
 
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnTouchListener;
 
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
-import com.example.danielsierraf.read4me.classes.FileHandler;
 import com.example.danielsierraf.read4me.R;
+import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.classes.ImageProcessing;
+import com.example.danielsierraf.read4me.fragments.OCRFragment;
+import com.example.danielsierraf.read4me.fragments.TextDetectionFragment;
+import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
 
-public class TextDetectionActivity extends Activity implements OnTouchListener, CvCameraViewListener2 {
+import java.util.Locale;
+
+public class TextDetectionActivity extends Activity implements ImageProcessingInterface,
+        TextToSpeech.OnInitListener{
     private static final String  TAG = "ColorDetectionActivity";
+    private static final int MY_DATA_CHECK_CODE = 1234;
 
-    private Mat mRgba;
-    private DetectTextNative textDetector;
-    private Scalar CONTOUR_COLOR;
     private AssetManager am;
-    private String lang_read;
-    private Context context;
-
-    private CameraBridgeViewBase mOpenCvCameraView;
-
-    public TextDetectionActivity() {
-        Log.i(TAG, "Instantiated new "+ TextDetectionActivity.class);
-    }
-
-    static {
-        System.loadLibrary("opencv_java");
-    }
+    private Context mContext;
+    private TextDetectionFragment mTextDetectionFragment;
+    private OCRFragment mOCRFragment;
+    private ImageProcessing imageProcessing;
+    private DetectTextNative textDetector;
+    private TextToSpeech mTts;
+    private String message;
+    private FragmentManager mFragmentManager;
 
     /** Called when the activity is first created. */
     @Override
@@ -52,47 +45,29 @@ public class TextDetectionActivity extends Activity implements OnTouchListener, 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.color_blob_detection_surface_view);
+        setContentView(R.layout.main);
 
-        am = this.getAssets();
-        context = getApplicationContext();
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
-        mOpenCvCameraView.setCvCameraViewListener(this);
-        mOpenCvCameraView.enableView();
-        mOpenCvCameraView.setOnTouchListener(TextDetectionActivity.this);
-    }
+        mContext = getApplicationContext();
+        am = getAssets();
 
-    @Override
-    public void onPause()
-    {
-        super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
-    }
-
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-        //OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
-    }
-
-    public void onDestroy() {
-        super.onDestroy();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
-    }
-
-    public void onCameraViewStarted(int width, int height) {
-        mRgba = new Mat(height, width, CvType.CV_8UC4);
+        imageProcessing = new ImageProcessing(mContext);
         textDetector = new DetectTextNative(am);
-        CONTOUR_COLOR = new Scalar(255,0,0,255);
-        lang_read = FileHandler.getDefaults(getString(R.string.lang_read), context);
+
+        if (mTextDetectionFragment == null)
+            mTextDetectionFragment = new TextDetectionFragment();
+
+        mFragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, mTextDetectionFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+        mFragmentManager.executePendingTransactions();
     }
 
-    public void onCameraViewStopped() {
-        mRgba.release();
-        //finalizar detecccion
+    @Override
+    protected void onStop() {
+        super.onStop();
+
         try {
             textDetector.finalize();
         } catch (Throwable throwable) {
@@ -102,154 +77,79 @@ public class TextDetectionActivity extends Activity implements OnTouchListener, 
         Log.d(TAG, "Deteccion finalizada");
     }
 
-    /*public boolean onTouch(View v, MotionEvent event) {
-        int cols = mRgba.cols();
-        int rows = mRgba.rows();
-
-        int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-        int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-
-        int x = (int)event.getX() - xOffset;
-        int y = (int)event.getY() - yOffset;
-
-        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-
-        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
-
-        Rect touchedRect = new Rect();
-
-        touchedRect.x = (x>4) ? x-4 : 0;
-        touchedRect.y = (y>4) ? y-4 : 0;
-
-        touchedRect.width = (x+4 < cols) ? x + 4 - touchedRect.x : cols - touchedRect.x;
-        touchedRect.height = (y+4 < rows) ? y + 4 - touchedRect.y : rows - touchedRect.y;
-
-        Mat touchedRegionRgba = mRgba.submat(touchedRect);
-
-        Mat touchedRegionHsv = new Mat();
-        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
-
-        // Calculate average color of touched region
-        mBlobColorHsv = Core.sumElems(touchedRegionHsv);
-        int pointCount = touchedRect.width*touchedRect.height;
-        for (int i = 0; i < mBlobColorHsv.val.length; i++)
-            mBlobColorHsv.val[i] /= pointCount;
-
-        //mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
-
-        //Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
-        //        ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
-
-        Log.i(TAG, "Touched hsv color: (" + mBlobColorHsv.val[0] + ", " + mBlobColorHsv.val[1] +
-                ", " + mBlobColorHsv.val[2] + ", " + mBlobColorHsv.val[3] + ")");
-
-        //Point org;
-        //org.x = x;
-        //org.y = y;
-        //putText(mRgba, mBlobColorHsv.val[2], , 1, 3, new Scalar(255, 255, 255));
-
-        mDetector.setHsvColor(mBlobColorHsv);
-
-        //Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
-
-        mIsColorSelected = true;
-
-        touchedRegionRgba.release();
-        touchedRegionHsv.release();
-
-        return false; // don't need subsequent touch events
-    }*/
-
-    public boolean onTouch(View v, MotionEvent event) {
-        int cols = mRgba.cols();
-        int rows = mRgba.rows();
-
-        int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-        int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
-
-        int x = (int) event.getX() - xOffset;
-        int y = (int) event.getY() - yOffset;
-
-        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-
-        textDetector.read(lang_read);
-
-        return false;
+    @Override
+    public void onDestroy()
+    {
+        mTextDetectionFragment = null;
+        // Don't forget to shutdown!
+        if (mTts != null)
+        {
+            mTts.stop();
+            mTts.shutdown();
+        }
+        super.onDestroy();
     }
 
-    /*public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-
-        if (mIsColorSelected) {
-            mDetector.process(mRgba);
-            List<MatOfPoint> contours = mDetector.getContours();
-            Log.d(TAG, "Contours count: " + contours.size());
-
-            Rect boundRect = findLargestRectangle(contours);
-            Core.rectangle(mRgba, boundRect.tl(), boundRect.br(), CONTOUR_COLOR, 2, 8, 0);
-
-            //Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
-        }
-
-        return mRgba;
-    }*/
-
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-
-        //Deteccion de texto (nativo c++)
-        textDetector.detect(mRgba.getNativeObjAddr());
-        int[] boxes = textDetector.getBoundingBoxes();
-
-        //Dibujar rectangulos
-        Rect[] boundingBoxes = new Rect[boxes.length/4];
-        int idx = 0;
-        for (int i = 0; i < boundingBoxes.length; i++) {
-            Rect box = new Rect(0, 0, 0, 0);
-            box.x = boxes[idx++];
-            box.y = boxes[idx++];
-            box.width = boxes[idx++];
-            box.height = boxes[idx++];
-            boundingBoxes[i] = box;
-
-            Core.rectangle(mRgba, boundingBoxes[i].tl(), boundingBoxes[i].br(), CONTOUR_COLOR, 1);
-        }
-
-        return mRgba;
+    @Override
+    public ImageProcessing getImageProcObject() {
+        return imageProcessing;
     }
 
-    /*private Scalar converScalarHsv2Rgba(Scalar hsvColor) {
-        Mat pointMatRgba = new Mat();
-        Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
-        Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
+    @Override
+    public DetectTextNative getDetectTextObject() {
+        return textDetector;
+    }
 
-        return new Scalar(pointMatRgba.get(0, 0));
-    }*/
+    @Override
+    public void notifyDetectionFinished() {
+        if (mOCRFragment == null)
+            mOCRFragment = new OCRFragment();
 
-    /*private static Rect findLargestRectangle(List<MatOfPoint> contours) {
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, mOCRFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+        fragmentManager.executePendingTransactions();
+    }
 
-        double maxArea = -1;
-        MatOfPoint temp_contour = contours.get(0);
-        MatOfPoint largest_contour = temp_contour;
+    @Override
+    public void notifyOCRFinished(String text) {
+        Log.d(TAG, "Recognized text: " + text);
+        message = text;
+        checkTTSResource();
+    }
 
-        for (int i = 0; i < contours.size(); i++){
-            temp_contour = contours.get(i);
-            double contourArea = Imgproc.contourArea(temp_contour);
-            //compare this contour to the previous largest contour found
-            if (contourArea > maxArea) {
-                maxArea = contourArea;
-                largest_contour = temp_contour;
+    @Override
+    public void onInit(int status) {
+        //mTts.speak(message, TextToSpeech.QUEUE_FLUSH, null, "");
+        Context context = getApplicationContext();
+        String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), context);
+        String country_hear = FileHandler.getDefaults(getString(R.string.country_hear), context);
+        Log.d(TAG, "Hearing " + lang_hear + ", " + country_hear);
+        Locale loc = new Locale (lang_hear, country_hear);
+        mTts.setLanguage(loc);
+        mTts.speak(message, TextToSpeech.QUEUE_FLUSH, null);
+    }
+
+    public void checkTTSResource(){
+        Intent checkIntent = new Intent();
+        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == MY_DATA_CHECK_CODE) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                // success, create the TTS instance
+                mTts = new TextToSpeech(this, this);
+            } else {
+                // missing data, install it
+                Intent installIntent = new Intent();
+                installIntent.setAction(
+                        TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                startActivity(installIntent);
             }
         }
-
-        MatOfPoint2f new_mat = new MatOfPoint2f( largest_contour.toArray() );
-        MatOfPoint2f approxCurve = new MatOfPoint2f();
-        int contourSize = (int)largest_contour.total();
-        Imgproc.approxPolyDP(new_mat, approxCurve, contourSize*0.05, true);
-        MatOfPoint mMOP1 = new MatOfPoint();
-        approxCurve.convertTo(mMOP1, CvType.CV_32S);
-        Rect boundRect = Imgproc.boundingRect(mMOP1);
-
-        return boundRect;
-    }*/
+    }
 }

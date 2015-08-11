@@ -2,10 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Read4Me.iml" filepath="$PROJECT_DIR$/Read4Me.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fragmentDynamicLayoutWithActionBar/fragmentDynamicLayoutWithActionBar.iml" filepath="$PROJECT_DIR$/fragmentDynamicLayoutWithActionBar/fragmentDynamicLayoutWithActionBar.iml" />
+      <module fileurl="file://$PROJECT_DIR$/lab5_AsyncTaskLab/lab5_AsyncTaskLab.iml" filepath="$PROJECT_DIR$/lab5_AsyncTaskLab/lab5_AsyncTaskLab.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary2410/openCVLibrary2410.iml" filepath="$PROJECT_DIR$/openCVLibrary2410/openCVLibrary2410.iml" />
+      <module fileurl="file://$PROJECT_DIR$/read4me.iml" filepath="$PROJECT_DIR$/read4me.iml" />
+      <module fileurl="file://$PROJECT_DIR$/read4me.iml" filepath="$PROJECT_DIR$/read4me.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tess-two/tess-two.iml" filepath="$PROJECT_DIR$/tess-two/tess-two.iml" />
+      <module fileurl="file://$PROJECT_DIR$/threadingAsyncTask/threadingAsyncTask.iml" filepath="$PROJECT_DIR$/threadingAsyncTask/threadingAsyncTask.iml" />
     </modules>
   </component>
 </project>
-

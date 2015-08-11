@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
 
     public final static boolean TEST_MODE = true;
@@ -97,7 +97,7 @@ public class MainActivity extends ActionBarActivity {
         spinner2.setAdapter(dataAdapter);
 
         // Spinner item selection Listener
-        addListenerOnSpinnerItemSelection();
+        //addListenerOnSpinnerItemSelection();
 
         // Button click Listener
         //addListenerOnButton();
@@ -129,7 +129,7 @@ public class MainActivity extends ActionBarActivity {
         return this;
     }
 
-    // Add spinner data
+    /*// Add spinner data
     public void addListenerOnSpinnerItemSelection(){
         spinner1.setOnItemSelectedListener(new CustomOnItemSelectedListener());
         spinner2.setOnItemSelectedListener(new CustomOnItemSelectedListener());
@@ -151,7 +151,7 @@ public class MainActivity extends ActionBarActivity {
 
         }
 
-    }
+    }*/
 
     private String[] getLanguages(String type){
         String langs[] = new String[]{"en", "es", "fr", "it", "de", "pt"};

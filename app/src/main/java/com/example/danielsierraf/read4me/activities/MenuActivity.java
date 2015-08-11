@@ -1,5 +1,6 @@
 package com.example.danielsierraf.read4me.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
@@ -20,7 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class MenuActivity extends ActionBarActivity {
+public class MenuActivity extends Activity {
 
     private static final String appName = "Read4Me";
 
