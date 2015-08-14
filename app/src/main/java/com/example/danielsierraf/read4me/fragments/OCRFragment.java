@@ -109,16 +109,19 @@ public class OCRFragment extends Fragment {
 
         @Override
         protected String doInBackground(Void... params) {
-            //textDetector = mCallbackObjects.getDetectTextObject();
-            //imageProcessing = mCallbackObjects.getImageProcObject();
             textDetector = mCallback.getDetectTextObject();
             imageProcessing = mCallback.getImageProcObject();
             lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
             String path = new FileHandler().getExternalStorageDir(appName).getPath()+
                     "/neural_networks/SVM.xml";
 
+            if (textDetector.getBoundingBoxes() != null){
+                int numBoxes = textDetector.getBoundingBoxes().length/4;
+                Log.d(TAG, "Filtering "+numBoxes+" boxes");
+            } else {
+                Log.d(TAG, "No bounding boxes");
+            }
 
-            Log.d(TAG, "Reading with: "+path);
             textDetector.read(path);
             int[] boxes = textDetector.getBoxesWords();
 

@@ -2,6 +2,7 @@ package com.example.danielsierraf.read4me.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,19 +27,19 @@ import org.opencv.core.Scalar;
  * Created by danielsierraf on 8/8/15.
  */
 public class TextDetectionFragment extends Fragment implements View.OnTouchListener, CvCameraViewListener2 {
-    private static final String  TAG              = "TextDetectionFragment";
+    private static final String  TAG  = "TextDetectionFragment";
 
     private Mat mRgba;
     private Scalar CONTOUR_COLOR;
-    //ImageProcessing imageProcessing;
-    //private DetectTextNative textDetector;
     private CameraBridgeViewBase mOpenCvCameraView;
+    private ImageProcessingInterface mCallback;
+    private DetectTextNative textDetector;
+    private boolean mDetectionFinished;
+    private int[] boxes;
 
     static {
         System.loadLibrary("opencv_java");
     }
-
-    private ImageProcessingInterface mCallback;
 
     /**
      * called once the fragment is associated with its activity.
@@ -48,21 +49,17 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        //am = activity.getAssets();
-        //mContext = activity.getApplicationContext();
-
         // Make sure that the hosting activity has implemented
         // the correct callback interface.
         try {
-            //mCallbackObjects = (ImageProcessingInterface) activity;
-            //mCallbackTextDetect = (TextDetectionInterface) activity;
             mCallback = (ImageProcessingInterface) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement TextDetectionInterface");
+            textDetector = mCallback.getDetectTextObject();
+        } catch (Exception e) {
+            /*throw new ClassCastException(activity.toString()
+                    + " must implement TextDetectionInterface");*/
+            e.printStackTrace();
         }
 
-        //textDetector = mCallback.getDetectTextObject();
         //imageProcessing = mCallback.getImageProcObject();
     }
 
@@ -125,11 +122,21 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        
+        mCallback = null;
+        textDetector = null;
+    }
+
+    @Override
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
         //textDetector = new DetectTextNative(am);
         CONTOUR_COLOR = new Scalar(255,0,0,255);
         //lang_read = FileHandler.getDefaults(getString(R.string.lang_read), mContext);
+        mDetectionFinished = true;
+        boxes = null;
     }
 
     @Override
@@ -142,22 +149,29 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         mRgba = inputFrame.rgba();
 
         //Deteccion de texto (nativo c++)
-        DetectTextNative textDetector = mCallback.getDetectTextObject();
+        /*DetectTextNative textDetector = mCallback.getDetectTextObject();
         textDetector.detect(mRgba.getNativeObjAddr());
-        int[] boxes = textDetector.getBoundingBoxes();
+        int[] boxes = textDetector.getBoundingBoxes();*/
+        if (mDetectionFinished){
+            mDetectionFinished = false;
+            TextDetectionTask textDetectionTask = new TextDetectionTask();
+            textDetectionTask.execute();
+        }
 
         //Dibujar rectangulos
-        Rect[] boundingBoxes = new Rect[boxes.length/4];
-        int idx = 0;
-        for (int i = 0; i < boundingBoxes.length; i++) {
-            Rect box = new Rect(0, 0, 0, 0);
-            box.x = boxes[idx++];
-            box.y = boxes[idx++];
-            box.width = boxes[idx++];
-            box.height = boxes[idx++];
-            boundingBoxes[i] = box;
+        if (boxes != null){
+            Rect[] boundingBoxes = new Rect[boxes.length/4];
+            int idx = 0;
+            for (int i = 0; i < boundingBoxes.length; i++) {
+                Rect box = new Rect(0, 0, 0, 0);
+                box.x = boxes[idx++];
+                box.y = boxes[idx++];
+                box.width = boxes[idx++];
+                box.height = boxes[idx++];
+                boundingBoxes[i] = box;
 
-            Core.rectangle(mRgba, boundingBoxes[i].tl(), boundingBoxes[i].br(), CONTOUR_COLOR, 2);
+                Core.rectangle(mRgba, boundingBoxes[i].tl(), boundingBoxes[i].br(), CONTOUR_COLOR, 2);
+            }
         }
 
         return mRgba;
@@ -183,5 +197,28 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         mCallback.notifyDetectionFinished();
 
         return false;
+    }
+
+    public class TextDetectionTask extends AsyncTask<Void, Integer, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            //Deteccion de texto (nativo c++)
+            try {
+                //textDetector = mCallback.getDetectTextObject();
+                textDetector.detect(mRgba.getNativeObjAddr());
+                boxes = textDetector.getBoundingBoxes();
+            } catch (Exception e){
+                Log.e(TAG, e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean finished) {
+            mDetectionFinished = finished;
+        }
     }
 }
