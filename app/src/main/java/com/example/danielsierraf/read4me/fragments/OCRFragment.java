@@ -26,7 +26,8 @@ import org.opencv.core.Rect;
  */
 public class OCRFragment extends Fragment {
 
-    private static final String TAG = "OCRFragment";
+    private final String TAG = "OCRFragment";
+    private final String appName = "Read4Me";
 
     //private ImageProcessingInterface mCallbackObjects;
     //private OCRInterface mCallbackOCR;
@@ -113,8 +114,12 @@ public class OCRFragment extends Fragment {
             textDetector = mCallback.getDetectTextObject();
             imageProcessing = mCallback.getImageProcObject();
             lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
+            String path = new FileHandler().getExternalStorageDir(appName).getPath()+
+                    "/neural_networks/SVM.xml";
 
-            textDetector.read(lang_read);
+
+            Log.d(TAG, "Reading with: "+path);
+            textDetector.read(path);
             int[] boxes = textDetector.getBoxesWords();
 
             //finalizar detecccion

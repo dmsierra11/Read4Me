@@ -11,11 +11,8 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/fragmentDynamicLayoutWithActionBar" />
-            <option value="$PROJECT_DIR$/lab5_AsyncTaskLab" />
             <option value="$PROJECT_DIR$/openCVLibrary2410" />
             <option value="$PROJECT_DIR$/tess-two" />
-            <option value="$PROJECT_DIR$/threadingAsyncTask" />
           </set>
         </option>
       </GradleProjectSettings>

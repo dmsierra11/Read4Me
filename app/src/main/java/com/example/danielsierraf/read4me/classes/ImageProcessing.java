@@ -229,7 +229,7 @@ public class ImageProcessing {
 
             //OCR
             Bitmap bmp = getMatBitmap(filtered);
-            OCR ocr = new OCR(mContext);
+            OCR ocr = new OCR();
             ocr.setLanguage(lang_read);
             text = text + ocr.recognizeText(bmp) + " ";
             Log.d(TAG, "Text: "+text);

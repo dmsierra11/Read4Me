@@ -21,7 +21,7 @@ public:
 
 	/* API */
     void detect(Mat& image);
-    void read(const char* lang);
+    void read(const char* path);
 
 	/* read useful files  */
 	void readLetterCorrelation(const char* filename);
@@ -149,7 +149,7 @@ private:
     
     vector<Mat> segment(vector<Rect>& boundingBoxes);
     
-    void applySVM(vector<Mat>& segments);
+    void applySVM(vector<Mat>& segments, String path);
 
 	// helper functions
 	int ImageAdjust(IplImage* src, IplImage* dst,

@@ -91,8 +91,8 @@ extern "C" {
     }
 
     JNIEXPORT void JNICALL Java_com_example_danielsierraf_read4me_classes_DetectTextNative_read
-        	    (JNIEnv* env, jobject jobj, jlong detectPtr, jstring lang){
-        const char *nativeString = (env)->GetStringUTFChars(lang, 0);
+        	    (JNIEnv* env, jobject jobj, jlong detectPtr, jstring path){
+        const char *nativeString = (env)->GetStringUTFChars(path, 0);
         // use your string
         LOGD("Reading...");
         toDetectTextNative(detectPtr)->read(nativeString);

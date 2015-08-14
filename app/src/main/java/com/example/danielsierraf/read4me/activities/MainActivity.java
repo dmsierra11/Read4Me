@@ -3,6 +3,8 @@ package com.example.danielsierraf.read4me.activities;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +22,11 @@ import com.example.danielsierraf.read4me.R;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +37,6 @@ public class MainActivity extends Activity {
 
     public final static boolean TEST_MODE = true;
     public final static String appFolder = new FileHandler().getExternalStorageDir("Read4Me").getPath();
-    //public final static SVM svmClassifier = new SVM();
 
     private final String TAG = "MainActivity";
 
@@ -39,8 +45,9 @@ public class MainActivity extends Activity {
     private String countryISO3;
     private Spinner spinner1;
     private Spinner spinner2;
+    private Context mContext;
 
-    static {
+    /*static {
         System.loadLibrary("opencv_java");
     }
 
@@ -61,11 +68,7 @@ public class MainActivity extends Activity {
                 } break;
             }
         }
-    };
-
-    /*static {
-        System.loadLibrary("opencv_java");
-    }*/
+    };*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,14 +78,15 @@ public class MainActivity extends Activity {
         countryISO3 = this.getResources().getConfiguration().locale.getISO3Country();
         Log.d(TAG, "Language: "+lang);
         Log.d(TAG, "Language ISO3: "+langISO3);
-        Log.d(TAG, "Country ISO3: "+countryISO3);
+        Log.d(TAG, "Country ISO3: " + countryISO3);
+
+        mContext = getApplicationContext();
 
         //TODO: Thread to train and copy tessdata
-
+        ComponentsInstaller installer = new ComponentsInstaller();
+        installer.execute();
 
         setContentView(R.layout.activity_main);
-
-        //System.loadLibrary("opencv_java");
 
         spinner1 = (Spinner) findViewById(R.id.spinner1);
         spinner2 = (Spinner) findViewById(R.id.spinner2);
@@ -206,12 +210,101 @@ public class MainActivity extends Activity {
         Log.d(TAG, "Language array:"+Arrays.toString(languages));
         lang_hear = languages[Integer.parseInt(lang_hear)];
 
-        Context context = getApplicationContext();
-        FileHandler.setDefaults(getString(R.string.lang_read), lang_read, context);
-        FileHandler.setDefaults(getString(R.string.lang_hear), lang_hear, context);
-        FileHandler.setDefaults(getString(R.string.country_hear), country_hear, context);
+        //Context context = getApplicationContext();
+        FileHandler.setDefaults(getString(R.string.lang_read), lang_read, mContext);
+        FileHandler.setDefaults(getString(R.string.lang_hear), lang_hear, mContext);
+        FileHandler.setDefaults(getString(R.string.country_hear), country_hear, mContext);
 
         startActivity(intent);
+    }
+
+    public class ComponentsInstaller extends AsyncTask<Void, Integer, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            String tessdata_path = appFolder + "/tessdata/";
+            String neural_path = appFolder + "/neural_networks/";
+            String[] paths = new String[] { appFolder,  tessdata_path, neural_path};
+            installFolders(paths);
+            installTesseract(tessdata_path);
+            installSVM(neural_path);
+            return null;
+        }
+    }
+
+    public void installFolders(String[] paths){
+
+        //Create app directory and tessdata dir
+        for (String path : paths) {
+            File dir = new File(path);
+            if (!dir.exists()) {
+                if (!dir.mkdirs()) {
+                    Log.v(TAG, "ERROR: Creation of directory " + path + " on sdcard failed");
+                    return;
+                } else {
+                    Log.v(TAG, "Created directory " + path + " on sdcard");
+                }
+            }
+        }
+
+    }
+
+    public void installTesseract(String tessdata){
+
+        // lang.traineddata file with the app (in assets folder)
+        if (!(new File(tessdata + langISO3 + ".traineddata")).exists()) {
+            try {
+
+                AssetManager assetManager = mContext.getAssets();
+                InputStream in = assetManager.open("tessdata/" + langISO3 + ".traineddata");
+                //GZIPInputStream gin = new GZIPInputStream(in);
+                OutputStream out = new FileOutputStream(tessdata + langISO3 + ".traineddata");
+
+                // Transfer bytes from in to out
+                byte[] buf = new byte[1024];
+                int len;
+                //while ((lenf = gin.read(buff)) > 0) {
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                in.close();
+                //gin.close();
+                out.close();
+
+                Log.d(TAG, "Copied " + langISO3 + " traineddata");
+            } catch (IOException e) {
+                Log.e(TAG, "Was unable to copy " + langISO3 + " traineddata " + e.toString());
+            }
+        }
+    }
+
+    public void installSVM(String svm){
+        String filename = "SVM.xml";
+        // lang.traineddata file with the app (in assets folder)
+        if (!(new File(svm + filename)).exists()) {
+            try {
+
+                AssetManager assetManager = mContext.getAssets();
+                InputStream in = assetManager.open("neural_networks/" + filename);
+                //GZIPInputStream gin = new GZIPInputStream(in);
+                OutputStream out = new FileOutputStream(svm + filename);
+
+                // Transfer bytes from in to out
+                byte[] buf = new byte[1024];
+                int len;
+                //while ((lenf = gin.read(buff)) > 0) {
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                in.close();
+                //gin.close();
+                out.close();
+
+                Log.d(TAG, "Copied " + filename);
+            } catch (IOException e) {
+                Log.e(TAG, "Was unable to copy " + filename + " " + e.toString());
+            }
+        }
     }
 
 }

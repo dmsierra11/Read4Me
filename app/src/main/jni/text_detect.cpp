@@ -77,6 +77,7 @@ void DetectText::detect() {
 
 void DetectText::detect(Mat& image) {
     originalImage_ = image.clone();
+    mode_ = STREAM;
     
     Mat imGray(originalImage_.size(),CV_8UC1, Scalar(0));
     cvtColor(originalImage_, imGray, CV_RGB2GRAY);
@@ -102,7 +103,7 @@ void DetectText::detect(Mat& image) {
     image = resultResized;*/
 }
 
-void DetectText::read(const char* lang){
+/*void DetectText::read(const char* lang){
     lang_ = lang;
     printf ("Reading native in %s \n", lang_ );
     vector<Mat> segments = segment(boundingBoxes_);
@@ -112,8 +113,13 @@ void DetectText::read(const char* lang){
     //showBoundingBoxes(boxesBothSides_);
     //showBoundingBoxes(boundingBoxes_);
     //overlayText(boxesBothSides_, wordsBothSides_);
-    
+
     textDisplayOffset_ = 1;
+}*/
+
+void DetectText::read(const char* path){
+    vector<Mat> segments = segment(boundingBoxes_);
+    applySVM(segments, path);
 }
 
 vector<Rect>&
@@ -962,12 +968,12 @@ vector<Mat> DetectText::segment(vector<Rect>& boundingBoxes){
     return segments;
 }
 
-void DetectText::applySVM(vector<Mat>& segments){
+void DetectText::applySVM(vector<Mat>& segments, String path){
     //SVM for each plate region to get valid car plates
     //Read file storage.
     FileStorage fs;
     //fs.open("SVM.xml", FileStorage::READ);
-    fs.open("/storage/emulated/0/Read4Me/SVM.xml", FileStorage::READ);
+    fs.open(path, FileStorage::READ);
     Mat SVM_TrainingData;
     Mat SVM_Classes;
     fs["TrainingData"] >> SVM_TrainingData;
