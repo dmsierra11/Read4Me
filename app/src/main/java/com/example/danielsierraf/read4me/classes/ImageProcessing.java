@@ -56,6 +56,11 @@ public class ImageProcessing {
         src = img;
     }
 
+    public void setMat(String path) {
+        src = Highgui.imread(path, 1);
+        preprocess();
+    }
+
     //Getters
     public Mat getMat(){ return src; }
 

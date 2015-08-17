@@ -111,11 +111,14 @@ public class MenuActivity extends Activity {
         //DO SOMETHING
         //Toast.makeText(this, "Called load picture", Toast.LENGTH_LONG).show();
         // select a file
-        Intent intent = new Intent();
+        /*Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, getString(R.string.select_pic)),
-                SELECT_PICTURE);
+                SELECT_PICTURE);*/
+        Intent intent = new Intent(this, GridViewActivity.class);
+        startActivity(intent);
+
     }
 
     public void callTakePicture(View v){

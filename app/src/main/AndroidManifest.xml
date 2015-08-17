@@ -55,6 +55,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MenuActivity" />
         </activity>
+        <activity
+            android:name=".activities.GridViewActivity"
+            android:label="@string/gallery"
+            android:parentActivityName=".activities.MenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MenuActivity" />
+        </activity>
     </application>
 
 </manifest>

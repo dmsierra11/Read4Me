@@ -8,15 +8,18 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.net.Uri;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.danielsierraf.read4me.adapters.FullScreenImageAdapter;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
 import com.example.danielsierraf.read4me.classes.FileHandler;
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
+import com.example.danielsierraf.read4me.classes.Utils;
 import com.example.danielsierraf.read4me.fragments.EditPicFragment;
 import com.example.danielsierraf.read4me.fragments.OCRFragment;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
@@ -25,7 +28,7 @@ import java.util.Locale;
 
 
 public class EditPicActivity extends Activity implements TextToSpeech.OnInitListener,
-        ImageProcessingInterface{
+        ImageProcessingInterface {
 
     //public static final String PHOTO_MIME_TYPE = "image/png";
     public static final String EXTRA_PHOTO_URI = "com.example.danielsierraf.EditPicActivity.PHOTO_URI";
@@ -53,29 +56,28 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.main);
-
         am = getAssets();
         mContext = getApplicationContext();
 
-        final Intent intent = getIntent();
+        //final Intent intent = getIntent();
         //imageView = (ImageView) findViewById(R.id.img_to_edit);
-        mDataPath = intent.getStringExtra(EXTRA_PHOTO_DATA_PATH);
+        /*mDataPath = intent.getStringExtra(EXTRA_PHOTO_DATA_PATH);
         int action = intent.getIntExtra(EXTRA_ACTION, 1);
 
         Log.d(TAG, "ACTION: " + action);
 
-        mUri = (action == 1) ? (Uri) intent.getParcelableExtra(EXTRA_PHOTO_URI) : null;
+        mUri = (action == 1) ? (Uri) intent.getParcelableExtra(EXTRA_PHOTO_URI) : null;*/
 
-        imageProcessing = new ImageProcessing(mContext, mDataPath);
+        //imageProcessing = new ImageProcessing(mContext, mDataPath);
+        imageProcessing = new ImageProcessing(mContext);
         detectText = new DetectTextNative(am);
 
-        Bundle args_ = new Bundle();
+        /*Bundle args_ = new Bundle();
         args_.putParcelable(EXTRA_PHOTO_URI, mUri);
         args_.putString(EXTRA_PHOTO_DATA_PATH, mDataPath);
-        args_.putInt(EXTRA_ACTION, action);
+        args_.putInt(EXTRA_ACTION, action);*/
 
-        if (mEditPicFragment == null)
+        /*if (mEditPicFragment == null)
             mEditPicFragment = new EditPicFragment();
         mEditPicFragment.setArguments(args_);
 
@@ -84,7 +86,26 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
         fragmentTransaction.replace(R.id.fragment_container, mEditPicFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-        mFragmentManager.executePendingTransactions();
+        mFragmentManager.executePendingTransactions();*/
+
+
+        setContentView(R.layout.activity_fullscreen_view);
+
+        ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+
+        Utils utils = new Utils(getApplicationContext());
+
+        Intent i = getIntent();
+        int position = i.getIntExtra("position", 0);
+        Log.d(TAG, "Position clicked: "+position);
+
+        FullScreenImageAdapter adapter = new FullScreenImageAdapter(EditPicActivity.this,
+                utils.getFilePaths());
+
+        viewPager.setAdapter(adapter);
+
+        // displaying selected image first
+        viewPager.setCurrentItem(position);
 
     }
 
@@ -118,8 +139,8 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
         // Save UI state changes to the savedInstanceState.
         // This bundle will be passed to onCreate if the process is
         // killed and restarted.
-        savedInstanceState.putParcelable("uri", mUri);
-        savedInstanceState.putString("photo_path", mDataPath);
+        //savedInstanceState.putParcelable("uri", mUri);
+        //savedInstanceState.putString("photo_path", mDataPath);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -136,8 +157,8 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
         //setContentView(R.layout.activity_edit_pic);
         // Restore UI state from the savedInstanceState.
         // This bundle has also been passed to onCreate.
-        mUri = savedInstanceState.getParcelable("uri");
-        mDataPath = savedInstanceState.getString("photo_path");
+        //mUri = savedInstanceState.getParcelable("uri");
+        //mDataPath = savedInstanceState.getString("photo_path");
         //imageView.setImageURI(mUri);
         //setContentView(imageView);
     }
@@ -170,6 +191,8 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
 
     @Override
     public void notifyDetectionFinished() {
+        setContentView(R.layout.main);
+
         if (mOCRFragment == null)
             mOCRFragment = new OCRFragment();
 
@@ -195,12 +218,12 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
         String lang_hear = FileHandler.getDefaults(getString(R.string.lang_hear), mContext);
         String country_hear = FileHandler.getDefaults(getString(R.string.country_hear), mContext);
         Log.d(TAG, "Hearing " + lang_hear + ", " + country_hear);
-        Locale loc = new Locale (lang_hear, country_hear);
+        Locale loc = new Locale(lang_hear, country_hear);
         mTts.setLanguage(loc);
         mTts.speak(message, TextToSpeech.QUEUE_FLUSH, null);
     }
 
-    public void checkTTSResource(){
+    public void checkTTSResource() {
         Intent checkIntent = new Intent();
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
