@@ -36,4 +36,5 @@
     <string name="lang_hear">lang_hear</string>
     <string name="lang_read">lang_read</string>
     <string name="title_activity_tts">TTSActivity</string>
+    <string name="tap2Start">Toccare schermo per iniziare</string>
 </resources>

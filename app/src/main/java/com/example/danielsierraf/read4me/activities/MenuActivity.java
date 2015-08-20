@@ -23,14 +23,14 @@ import java.util.Date;
 
 public class MenuActivity extends Activity {
 
-    private static final String appName = "Read4Me";
+    public static final int TAKE_PHOTO_ACTION = 1;
+    public static final int REAL_TIME_ACTION = 2;
 
     private final String TAG = "MenuActivity";
     private final int SELECT_PICTURE = 1;
     private final int REQUEST_IMAGE_CAPTURE = 2;
 
     private String mCurrentPhotoPath;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +104,7 @@ public class MenuActivity extends Activity {
         //DO SOMETHING
         //Toast.makeText(this, "Called real time", Toast.LENGTH_LONG).show();
         Intent intent = new Intent(this, TextDetectionActivity.class);
+        intent.putExtra("action", REAL_TIME_ACTION);
         startActivity(intent);
     }
 
@@ -123,7 +124,7 @@ public class MenuActivity extends Activity {
 
     public void callTakePicture(View v){
         // create Intent to take a picture and return control to the calling application
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        /*Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         File f = null;
 
@@ -137,7 +138,11 @@ public class MenuActivity extends Activity {
             mCurrentPhotoPath = null;
         }
 
-        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);*/
+        Intent intent = new Intent(this, TextDetectionActivity.class);
+        intent.putExtra("action", TAKE_PHOTO_ACTION);
+        startActivity(intent);
+
     }
 
     private File createImageFile() throws IOException {

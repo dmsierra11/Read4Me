@@ -9,6 +9,6 @@ import com.example.danielsierraf.read4me.classes.ImageProcessing;
 public interface ImageProcessingInterface {
     public ImageProcessing getImageProcObject();
     public DetectTextNative getDetectTextObject();
-    public void notifyDetectionFinished();
+    public void notifyDetectionFinished(ImageProcessing imageProcessing, DetectTextNative textDetector);
     public void notifyOCRFinished(String text);
 }

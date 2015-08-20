@@ -53,8 +53,15 @@ public class TextDetectionActivity extends Activity implements ImageProcessingIn
         imageProcessing = new ImageProcessing(mContext);
         textDetector = new DetectTextNative(am);
 
+        Intent intent = getIntent();
+        int action = intent.getIntExtra("action", 0);
+
         if (mTextDetectionFragment == null)
             mTextDetectionFragment = new TextDetectionFragment();
+
+        Bundle args_ = new Bundle();
+        args_.putInt("action", action);
+        mTextDetectionFragment.setArguments(args_);
 
         mFragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
@@ -101,7 +108,9 @@ public class TextDetectionActivity extends Activity implements ImageProcessingIn
     }
 
     @Override
-    public void notifyDetectionFinished() {
+    public void notifyDetectionFinished(ImageProcessing imageProcessing, DetectTextNative textDetector) {
+        this.textDetector = textDetector;
+        this.imageProcessing = imageProcessing;
         if (mOCRFragment == null)
             mOCRFragment = new OCRFragment();
 

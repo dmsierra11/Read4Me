@@ -188,8 +188,8 @@ public class ImageProcessing {
 
     public Rect[] getBoundingBoxes(int[] boxes){
         Log.d(TAG, "Segmenting...");
-        Mat img = src.clone();
-        Log.d(TAG, "cloned");
+        //Mat img = src.clone();
+        //Log.d(TAG, "cloned");
         Rect[] boundingBoxes = new Rect[boxes.length/4];
         Log.d(TAG, "BOXES "+boundingBoxes.length);
         int idx = 0;
@@ -201,12 +201,12 @@ public class ImageProcessing {
             box.height = boxes[idx++];
             boundingBoxes[i] = box;
 
-            Core.rectangle(img, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
+            Core.rectangle(src, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
         }
 
         Log.d(TAG, "Test Mode: "+MainActivity.TEST_MODE);
         if (MainActivity.TEST_MODE){
-            writeSegment(img, "detecccion");
+            writeSegment(src, "detecccion");
             Log.d(TAG, "Se escribio la imagen en la carpeta de la aplicacion");
         }
 

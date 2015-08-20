@@ -29,8 +29,6 @@ public class OCRFragment extends Fragment {
     private final String TAG = "OCRFragment";
     private final String appName = "Read4Me";
 
-    //private ImageProcessingInterface mCallbackObjects;
-    //private OCRInterface mCallbackOCR;
     private Context mContext;
     private String lang_read;
     private DetectTextNative textDetector;
@@ -51,15 +49,11 @@ public class OCRFragment extends Fragment {
         // the correct callback interface.
         try {
             mCallback = (ImageProcessingInterface) activity;
-            //mCallbackObjects = (ImageProcessingInterface) activity;
-            //mCallbackOCR = (OCRInterface) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement TextDetectionInterface");
         }
 
-        //textDetector = mCallbackObjects.getDetectTextObject();
-        //imageProcessing = mCallbackObjects.getImageProcObject();
         textDetector = mCallback.getDetectTextObject();
         imageProcessing = mCallback.getImageProcObject();
     }
@@ -100,17 +94,17 @@ public class OCRFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        //mCallbackObjects = null;
-        //mCallbackOCR = null;
         mCallback = null;
+        textDetector = null;
+        imageProcessing = null;
     }
 
     private class OCReader extends AsyncTask<Void, Integer, String>{
 
         @Override
         protected String doInBackground(Void... params) {
-            textDetector = mCallback.getDetectTextObject();
-            imageProcessing = mCallback.getImageProcObject();
+            //textDetector = mCallback.getDetectTextObject();
+            //imageProcessing = mCallback.getImageProcObject();
             lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
             String path = new FileHandler().getExternalStorageDir(appName).getPath()+
                     "/neural_networks/SVM.xml";

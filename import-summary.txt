@@ -7,22 +7,16 @@ The following files were *not* copied into the new Gradle project; you
 should evaluate whether these are still needed in your project and if
 so manually move them:
 
-* .DS_Store
-* proguard.cfg
+* CMakeLists.txt
 
 Moved Files:
 ------------
 Android Gradle projects use a different directory structure than ADT
 Eclipse projects. Here's how the projects were restructured:
 
-* AndroidManifest.xml => fragmentDynamicLayoutWithActionBar/src/main/AndroidManifest.xml
-* res/ => fragmentDynamicLayoutWithActionBar/src/main/res/
-* src/ => fragmentDynamicLayoutWithActionBar/src/main/java/
-* src/.DS_Store => fragmentDynamicLayoutWithActionBar/src/main/resources/.DS_Store
-* src/course/.DS_Store => fragmentDynamicLayoutWithActionBar/src/main/resources/course/.DS_Store
-* src/course/examples/.DS_Store => fragmentDynamicLayoutWithActionBar/src/main/resources/course/examples/.DS_Store
-* src/course/examples/fragments/.DS_Store => fragmentDynamicLayoutWithActionBar/src/main/resources/course/examples/fragments/.DS_Store
-* src/course/examples/fragments/actionbar/.DS_Store => fragmentDynamicLayoutWithActionBar/src/main/resources/course/examples/fragments/actionbar/.DS_Store
+* AndroidManifest.xml => openCVTutorial3CameraControl/src/main/AndroidManifest.xml
+* res/ => openCVTutorial3CameraControl/src/main/res/
+* src/ => openCVTutorial3CameraControl/src/main/java/
 
 Next Steps:
 -----------

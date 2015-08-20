@@ -6,13 +6,12 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.media.Image;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.net.Uri;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.example.danielsierraf.read4me.adapters.FullScreenImageAdapter;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
@@ -20,7 +19,6 @@ import com.example.danielsierraf.read4me.classes.FileHandler;
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
 import com.example.danielsierraf.read4me.classes.Utils;
-import com.example.danielsierraf.read4me.fragments.EditPicFragment;
 import com.example.danielsierraf.read4me.fragments.OCRFragment;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
 
@@ -34,21 +32,17 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
     public static final String EXTRA_PHOTO_URI = "com.example.danielsierraf.EditPicActivity.PHOTO_URI";
     public static final String EXTRA_PHOTO_DATA_PATH = "com.example.danielsierraf.EditPicActivity.PHOTO_DATA_PATH";
     public static final String EXTRA_ACTION = "com.example.danielsierraf.EditPicActivity.EXTRA_ACTION";
-    public static final String TAG_IMAGE_PROC_FRAGMENT = "imageProcFragment";
     private static final int MY_DATA_CHECK_CODE = 1234;
 
     //private final int PIC_EDIT = 1;
     private static final String TAG = "EditPicActivity";
 
-    private Uri mUri;
-    private String mDataPath;
     private FragmentManager mFragmentManager;
     private AssetManager am;
     private Context mContext;
     private ImageProcessing imageProcessing;
     private DetectTextNative detectText;
     private OCRFragment mOCRFragment;
-    private EditPicFragment mEditPicFragment;
     private TextToSpeech mTts;
     private String message;
 
@@ -59,35 +53,8 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
         am = getAssets();
         mContext = getApplicationContext();
 
-        //final Intent intent = getIntent();
-        //imageView = (ImageView) findViewById(R.id.img_to_edit);
-        /*mDataPath = intent.getStringExtra(EXTRA_PHOTO_DATA_PATH);
-        int action = intent.getIntExtra(EXTRA_ACTION, 1);
-
-        Log.d(TAG, "ACTION: " + action);
-
-        mUri = (action == 1) ? (Uri) intent.getParcelableExtra(EXTRA_PHOTO_URI) : null;*/
-
-        //imageProcessing = new ImageProcessing(mContext, mDataPath);
         imageProcessing = new ImageProcessing(mContext);
         detectText = new DetectTextNative(am);
-
-        /*Bundle args_ = new Bundle();
-        args_.putParcelable(EXTRA_PHOTO_URI, mUri);
-        args_.putString(EXTRA_PHOTO_DATA_PATH, mDataPath);
-        args_.putInt(EXTRA_ACTION, action);*/
-
-        /*if (mEditPicFragment == null)
-            mEditPicFragment = new EditPicFragment();
-        mEditPicFragment.setArguments(args_);
-
-        mFragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, mEditPicFragment);
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
-        mFragmentManager.executePendingTransactions();*/
-
 
         setContentView(R.layout.activity_fullscreen_view);
 
@@ -108,8 +75,6 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
         viewPager.setCurrentItem(position);
 
     }
-
-
 
     /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -146,7 +111,6 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
 
     @Override
     protected void onDestroy() {
-        mEditPicFragment = null;
         super.onDestroy();
     }
 
@@ -190,8 +154,11 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
     }
 
     @Override
-    public void notifyDetectionFinished() {
+    public void notifyDetectionFinished(ImageProcessing imageProcessing, DetectTextNative textDetector) {
         setContentView(R.layout.main);
+
+        this.imageProcessing = imageProcessing;
+        this.detectText = textDetector;
 
         if (mOCRFragment == null)
             mOCRFragment = new OCRFragment();

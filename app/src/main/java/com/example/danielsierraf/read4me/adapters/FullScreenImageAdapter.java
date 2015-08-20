@@ -38,7 +38,6 @@ public class FullScreenImageAdapter extends PagerAdapter{
     private ImageProcessingInterface mCallback;
     //private Context mContext;
     private ProgressBar progressBar;
-    ImageProcessing imageProcessing;
     private int selected;
     private boolean first_pass;
 
@@ -118,6 +117,9 @@ public class FullScreenImageAdapter extends PagerAdapter{
 
     public class ImageProcessingTask extends AsyncTask<Void, Integer, Void> {
 
+        DetectTextNative detectText;
+        ImageProcessing imageProcessing;
+
         @Override
         protected void onPreExecute() {
             progressBar.setVisibility(ProgressBar.VISIBLE);
@@ -126,7 +128,7 @@ public class FullScreenImageAdapter extends PagerAdapter{
         @Override
         protected Void doInBackground(Void... params) {
             //Deteccion de texto (nativo c++)
-            DetectTextNative detectText = mCallback.getDetectTextObject();
+            detectText = mCallback.getDetectTextObject();
             imageProcessing = mCallback.getImageProcObject();
             imageProcessing.setMat(_imagePaths.get(selected));
             Mat src = imageProcessing.getMat();
@@ -138,7 +140,7 @@ public class FullScreenImageAdapter extends PagerAdapter{
         protected void onPostExecute(Void result) {
             Log.d(TAG, "Detection finished");
             progressBar.setVisibility(ProgressBar.INVISIBLE);
-            mCallback.notifyDetectionFinished();
+            mCallback.notifyDetectionFinished(imageProcessing, detectText);
         }
     }
 }
