@@ -6,19 +6,17 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
-import android.media.Image;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.net.Uri;
 
 import com.example.danielsierraf.read4me.adapters.FullScreenImageAdapter;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
-import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.utils.FileHandler;
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
-import com.example.danielsierraf.read4me.classes.Utils;
+import com.example.danielsierraf.read4me.utils.Utils;
 import com.example.danielsierraf.read4me.fragments.OCRFragment;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
 

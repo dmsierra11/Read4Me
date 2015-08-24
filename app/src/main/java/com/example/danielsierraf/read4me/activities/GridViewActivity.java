@@ -13,8 +13,8 @@ import android.widget.GridView;
 
 import com.example.danielsierraf.read4me.adapters.*;
 import com.example.danielsierraf.read4me.R;
-import com.example.danielsierraf.read4me.classes.AppConstant;
-import com.example.danielsierraf.read4me.classes.Utils;
+import com.example.danielsierraf.read4me.utils.AppConstant;
+import com.example.danielsierraf.read4me.utils.Utils;
 
 import java.util.ArrayList;
 

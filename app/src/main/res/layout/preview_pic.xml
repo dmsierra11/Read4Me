@@ -1,0 +1,46 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.danielsierraf.read4me.activities.EditPicActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_bar_read"
+        android:id="@+id/preview_image"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:id="@+id/bottom_bar_read"
+        android:background="#3E4E76"
+        android:weightSum="2">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:text="@string/retake_pic"
+            android:id="@+id/btn_take_another"
+            android:background="#26bcd4"
+            android:textColor="#FFFFFF"
+            android:paddingLeft="@dimen/activity_vertical_margin"
+            android:layout_weight="1"
+            android:gravity="center"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:id="@+id/btn_pic_done"
+            android:paddingRight="@dimen/activity_vertical_margin"
+            android:paddingEnd="@dimen/activity_vertical_margin"
+            android:text="OK"
+            android:background="#26bcd4"
+            android:textColor="#FFFFFF"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+</RelativeLayout>

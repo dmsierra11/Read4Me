@@ -40,4 +40,5 @@
     <string name="title_activity_color_detect">ColorBlobDetectionActivity</string>
     <string name="gallery">Gallery</string>
     <string name="tap2Start">Tap screen to start</string>
+    <string name="retake_pic">Retake</string>
 </resources>

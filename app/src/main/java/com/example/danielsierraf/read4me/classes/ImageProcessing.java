@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.example.danielsierraf.read4me.activities.MainActivity;
+import com.example.danielsierraf.read4me.utils.FileHandler;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -17,11 +18,12 @@ import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
+import java.io.Serializable;
 
 /**
  * Created by danielsierraf on 8/7/15.
  */
-public class ImageProcessing {
+public class ImageProcessing implements Serializable{
 
     public static final String appName = "Read4Me";
     public static final String TAG = "ImageProcessing";
@@ -53,7 +55,7 @@ public class ImageProcessing {
 
     //Setters
     public void setMat(Mat img) {
-        src = img;
+        src = img.clone();
     }
 
     public void setMat(String path) {
@@ -201,7 +203,7 @@ public class ImageProcessing {
             box.height = boxes[idx++];
             boundingBoxes[i] = box;
 
-            Core.rectangle(src, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
+            //Core.rectangle(src, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
         }
 
         Log.d(TAG, "Test Mode: "+MainActivity.TEST_MODE);

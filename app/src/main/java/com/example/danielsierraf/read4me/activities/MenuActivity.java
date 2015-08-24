@@ -4,15 +4,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.danielsierraf.read4me.classes.ImageHandler;
+import com.example.danielsierraf.read4me.utils.ImageHandler;
 import com.example.danielsierraf.read4me.R;
 
 import java.io.File;

@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,12 +22,13 @@ import android.widget.Toast;
 
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.activities.MenuActivity;
-import com.example.danielsierraf.read4me.activities.TextDetectionActivity;
-import com.example.danielsierraf.read4me.classes.AppConstant;
+import com.example.danielsierraf.read4me.utils.AppConstant;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
-import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.utils.FileHandler;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
+import com.example.danielsierraf.read4me.interfaces.CustomCameraInterface;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
+import com.example.danielsierraf.read4me.utils.Read4MeApp;
 import com.example.danielsierraf.read4me.views.NativeCameraCustomView;
 
 import org.opencv.android.CameraBridgeViewBase;
@@ -73,6 +73,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     private List<Camera.Size> mResolutionList;
     private MenuItem[] mResolutionMenuItems;
     private int mAction;
+    private CustomCameraInterface mCallbackPicture;
 
     /**
      * called once the fragment is associated with its activity.
@@ -89,9 +90,10 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         // the correct callback interface.
         try {
             mCallback = (ImageProcessingInterface) activity;
+            mCallbackPicture = (CustomCameraInterface) activity;
             textDetector = mCallback.getDetectTextObject();
             mStart = false;
-            mContext = activity.getApplicationContext();
+            mContext = Read4MeApp.getInstance();
         } catch (Exception e) {
             /*throw new ClassCastException(activity.toString()
                     + " must implement TextDetectionInterface");*/
@@ -178,7 +180,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         super.onDetach();
         
         mCallback = null;
-        textDetector = null;
+        //textDetector = null;
     }
 
     @Override
@@ -190,8 +192,8 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         mDetectionFinished = true;
         boxes = null;
 
-        if (mOpenCvCameraView.isPictureSizeSupported())
-            mOpenCvCameraView.setPictureSize();
+        /*if (mOpenCvCameraView.isPictureSizeSupported())
+            mOpenCvCameraView.setPictureSize();*/
 
         /*Camera.Size resolution = mOpenCvCameraView.getResolution();
         Log.d(TAG, "Resolution: " + resolution.height + "x" + resolution.width);
@@ -261,14 +263,18 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
             if (mAction == MenuActivity.REAL_TIME_ACTION){
                 //Mat img = mRgba.clone();
                 ImageProcessing imageProcessing = mCallback.getImageProcObject();
+                //ImageProcessing imageProcessing = ImageProcessor.getImageProcessing();
+                //ImageProcessing imageProcessing = new ImageProcessing(mContext);
                 imageProcessing.setMat(mRgba);
+                //ImageProcessor.setImageProcessing(imageProcessing);
+
                 mCallback.notifyDetectionFinished(imageProcessing, textDetector);
             } else {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
                 String currentDateandTime = sdf.format(new Date());
                 File file = new FileHandler().getAlbumPublicStorageDir(AppConstant.PHOTO_ALBUM, "pictures");
                 String fileName = file.getPath() + "/" + currentDateandTime + ".jpg";
-                mOpenCvCameraView.takePicture(fileName);
+                mOpenCvCameraView.takePicture(fileName, mCallbackPicture);
             }
         } else {
             mStart = true;

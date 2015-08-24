@@ -5,10 +5,10 @@ import android.content.res.AssetManager;
 public class DetectTextNative {
 	
     static {
+        System.loadLibrary("opencv_java");
         System.loadLibrary("lept");
         System.loadLibrary("tess");
 		System.loadLibrary("run_detection");
-        System.loadLibrary("opencv_java");
 	}
 	
 	private long detectPtr = 0;

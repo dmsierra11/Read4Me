@@ -1,4 +1,4 @@
-package com.example.danielsierraf.read4me.classes;
+package com.example.danielsierraf.read4me.utils;
 
 import android.app.Activity;
 import android.content.Context;

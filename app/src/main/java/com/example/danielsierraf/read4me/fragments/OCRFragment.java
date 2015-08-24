@@ -15,9 +15,10 @@ import android.widget.TextView;
 
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
-import com.example.danielsierraf.read4me.classes.FileHandler;
+import com.example.danielsierraf.read4me.utils.FileHandler;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
+import com.example.danielsierraf.read4me.utils.Read4MeApp;
 
 import org.opencv.core.Rect;
 
@@ -31,8 +32,8 @@ public class OCRFragment extends Fragment {
 
     private Context mContext;
     private String lang_read;
-    private DetectTextNative textDetector;
-    private ImageProcessing imageProcessing;
+    //private DetectTextNative textDetector;
+    //private ImageProcessing imageProcessing;
     private ScrollView scrollView;
     private TextView textView;
     private ProgressBar progressBar;
@@ -43,7 +44,7 @@ public class OCRFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         Log.d(TAG, "OnAttach");
-        mContext = activity.getApplicationContext();
+        mContext = Read4MeApp.getInstance();
 
         // Make sure that the hosting activity has implemented
         // the correct callback interface.
@@ -53,9 +54,6 @@ public class OCRFragment extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement TextDetectionInterface");
         }
-
-        textDetector = mCallback.getDetectTextObject();
-        imageProcessing = mCallback.getImageProcObject();
     }
 
     @Override
@@ -65,6 +63,9 @@ public class OCRFragment extends Fragment {
         // Preserve across reconfigurations
         setRetainInstance(true);
         setHasOptionsMenu(true);
+
+        //ImageProcessing imageProcessing = ImageProcessor.getImageProcessing();
+        //this.imageProcessing = imageProcessing;
 
         OCReader ocrRead = new OCReader();
         ocrRead.execute();
@@ -95,8 +96,8 @@ public class OCRFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mCallback = null;
-        textDetector = null;
-        imageProcessing = null;
+        //textDetector = null;
+        //imageProcessing = null;
     }
 
     private class OCReader extends AsyncTask<Void, Integer, String>{
@@ -109,7 +110,11 @@ public class OCRFragment extends Fragment {
             String path = new FileHandler().getExternalStorageDir(appName).getPath()+
                     "/neural_networks/SVM.xml";
 
-            if (textDetector.getBoundingBoxes() != null){
+            DetectTextNative textDetector = mCallback.getDetectTextObject();
+
+            int[] boundBoxes = textDetector.getBoundingBoxes();
+
+            if (boundBoxes != null){
                 int numBoxes = textDetector.getBoundingBoxes().length/4;
                 Log.d(TAG, "Filtering "+numBoxes+" boxes");
             } else {
@@ -129,6 +134,8 @@ public class OCRFragment extends Fragment {
             }
             Log.d(TAG, "Deteccion finalizada");
 
+            //ImageProcessing imageProcessing = ImageProcessor.getImageProcessing();
+            ImageProcessing imageProcessing = mCallback.getImageProcObject();
             //show bounding boxes
             Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
             //OCR

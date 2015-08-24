@@ -7,6 +7,8 @@ import android.hardware.Camera.Size;
 import android.util.AttributeSet;
 import android.util.Log;
 
+import com.example.danielsierraf.read4me.interfaces.CustomCameraInterface;
+
 import org.opencv.android.JavaCameraView;
 
 import java.io.FileOutputStream;
@@ -17,6 +19,7 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
 
     private static final String TAG = "NativeCameraCustomView";
     private String mPictureFileName;
+    private CustomCameraInterface mCallback;
 
     public NativeCameraCustomView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -102,15 +105,17 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
                 mCamera.setParameters(params);
             }
         }*/
-        Size smallest = supported_sizes.get(supported_sizes.size()-2);
-        params.setPictureSize(smallest.width, smallest.height);
+        //Size smallest = supported_sizes.get(supported_sizes.size()-2);
+        Size biggest = supported_sizes.get(0);
+        params.setPictureSize(biggest.width, biggest.height);
         mCamera.setParameters(params);
-        setResolution(smallest);
+        setResolution(biggest);
     }
 
-    public void takePicture(final String fileName) {
+    public void takePicture(final String fileName, CustomCameraInterface mCallbackPic) {
         Log.i(TAG, "Taking picture");
         this.mPictureFileName = fileName;
+        mCallback = mCallbackPic;
         // Postview and jpeg are sent in the same buffers if the queue is not empty when performing a capture.
         // Clear up buffers to avoid mCamera.takePicture to be stuck because of a memory issue
         mCamera.setPreviewCallback(null);
@@ -132,6 +137,7 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
 
             fos.write(data);
             fos.close();
+            mCallback.notifyPictureTaken(mPictureFileName);
 
         } catch (java.io.IOException e) {
             Log.e("PictureDemo", "Exception in photoCallback", e);
