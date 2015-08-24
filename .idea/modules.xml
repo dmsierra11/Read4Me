@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary2410/openCVLibrary2410.iml" filepath="$PROJECT_DIR$/openCVLibrary2410/openCVLibrary2410.iml" />
-      <module fileurl="file://$PROJECT_DIR$/openCVTutorial3CameraControl/openCVTutorial3CameraControl.iml" filepath="$PROJECT_DIR$/openCVTutorial3CameraControl/openCVTutorial3CameraControl.iml" />
       <module fileurl="file://$PROJECT_DIR$/read4me.iml" filepath="$PROJECT_DIR$/read4me.iml" />
       <module fileurl="file://$PROJECT_DIR$/tess-two/tess-two.iml" filepath="$PROJECT_DIR$/tess-two/tess-two.iml" />
     </modules>
