@@ -7,8 +7,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -22,6 +26,8 @@ import com.example.danielsierraf.read4me.utils.Read4MeApp;
 
 import org.opencv.core.Rect;
 
+import java.util.zip.Inflater;
+
 /**
  * Created by danielsierraf on 8/7/15.
  */
@@ -34,8 +40,9 @@ public class OCRFragment extends Fragment {
     private String lang_read;
     //private DetectTextNative textDetector;
     //private ImageProcessing imageProcessing;
-    private ScrollView scrollView;
-    private TextView textView;
+    //private ScrollView scrollView;
+    //private TextView textView;
+    private ImageView imageView;
     private ProgressBar progressBar;
     private String message;
     private ImageProcessingInterface mCallback;
@@ -75,7 +82,7 @@ public class OCRFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "OnCreateView");
-        return inflater.inflate(R.layout.activity_tts, container, false);
+        return inflater.inflate(R.layout.ocr, container, false);
 
     }
 
@@ -84,9 +91,10 @@ public class OCRFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "OnActivityCreated");
 
-        scrollView = (ScrollView) getActivity().findViewById(R.id.scrollView);
+        /*scrollView = (ScrollView) getActivity().findViewById(R.id.scrollView);
         scrollView.setEnabled(false);
-        textView = (TextView) getActivity().findViewById(R.id.ocr_text);
+        textView = (TextView) getActivity().findViewById(R.id.ocr_text);*/
+        imageView = (ImageView) getActivity().findViewById(R.id.ocr_image);
         progressBar = (ProgressBar) getActivity().findViewById(R.id.progressBarTTS);
         progressBar.setVisibility(ProgressBar.VISIBLE);
     }
@@ -100,7 +108,20 @@ public class OCRFragment extends Fragment {
         //imageProcessing = null;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_main, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
+
     private class OCReader extends AsyncTask<Void, Integer, String>{
+
+       ImageProcessing imageProcessing;
 
         @Override
         protected String doInBackground(Void... params) {
@@ -135,7 +156,7 @@ public class OCRFragment extends Fragment {
             Log.d(TAG, "Deteccion finalizada");
 
             //ImageProcessing imageProcessing = ImageProcessor.getImageProcessing();
-            ImageProcessing imageProcessing = mCallback.getImageProcObject();
+            imageProcessing = mCallback.getImageProcObject();
             //show bounding boxes
             Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
             //OCR
@@ -148,10 +169,10 @@ public class OCRFragment extends Fragment {
         protected void onPostExecute(String text) {
             Log.d(TAG, "OCRed: " + text);
             message = text;
-            scrollView.setEnabled(true);
+            //scrollView.setEnabled(true);
             progressBar.setVisibility(ProgressBar.INVISIBLE);
-            textView.setText(message);
-
+            //textView.setText(message);
+            imageView.setImageBitmap(imageProcessing.getMatBitmap());
             mCallback.notifyOCRFinished(text);
         }
     }
