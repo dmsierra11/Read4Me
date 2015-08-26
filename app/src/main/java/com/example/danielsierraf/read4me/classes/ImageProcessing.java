@@ -28,6 +28,7 @@ public class ImageProcessing implements Serializable{
     public static final String appName = "Read4Me";
     public static final String TAG = "ImageProcessing";
     private static final Scalar TEXT_RECT_COLOR = new Scalar(0, 255, 0, 255);
+    private static final Scalar TEXT_COLOR = new Scalar(0, 255, 255, 0);
 
     private Context mContext;
     private Mat src;
@@ -191,9 +192,13 @@ public class ImageProcessing implements Serializable{
     public Rect[] getBoundingBoxes(int[] boxes){
         Log.d(TAG, "Segmenting...");
         //Mat img = src.clone();
-        //Log.d(TAG, "cloned");
         Rect[] boundingBoxes = new Rect[boxes.length/4];
         Log.d(TAG, "BOXES "+boundingBoxes.length);
+
+        if (MainActivity.TEST_MODE){
+            writeImage("original");
+        }
+
         int idx = 0;
         for (int i = 0; i < boundingBoxes.length; i++) {
             Rect box = new Rect(0, 0, 0, 0);
@@ -203,7 +208,7 @@ public class ImageProcessing implements Serializable{
             box.height = boxes[idx++];
             boundingBoxes[i] = box;
 
-            //Core.rectangle(src, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
+            Core.rectangle(src, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
         }
 
         Log.d(TAG, "Test Mode: "+MainActivity.TEST_MODE);
@@ -238,7 +243,15 @@ public class ImageProcessing implements Serializable{
             Bitmap bmp = getMatBitmap(filtered);
             OCR ocr = new OCR();
             ocr.setLanguage(lang_read);
-            text = text + ocr.recognizeText(bmp) + " ";
+
+            String output = ocr.recognizeText(bmp);
+
+            int offset = 10;
+            Core.putText(src, output, new Point(box.x + offset, box.y + box.height + offset),
+                    Core.FONT_HERSHEY_DUPLEX, 1, TEXT_COLOR, 2);
+
+            //text = text + ocr.recognizeText(bmp) + " ";
+            text = text + output + " ";
             Log.d(TAG, "Text: "+text);
         }
 

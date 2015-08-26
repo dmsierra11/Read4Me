@@ -53,6 +53,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     private static final String  TAG  = "TextDetectionFragment";
 
     private Mat mRgba;
+    private Mat mRgbaOriginal;
     private Scalar CONTOUR_COLOR;
     private NativeCameraCustomView mOpenCvCameraView;
     private Button btn_tap2start;
@@ -186,6 +187,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
+        mRgbaOriginal = new Mat(height, width, CvType.CV_8UC4);
         //textDetector = new DetectTextNative(am);
         CONTOUR_COLOR = new Scalar(255,0,0,255);
         //lang_read = FileHandler.getDefaults(getString(R.string.lang_read), mContext);
@@ -224,6 +226,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
+        mRgbaOriginal = mRgba.clone();
 
         if (mStart){
             //Deteccion de texto (nativo c++)
@@ -261,12 +264,9 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
 
         if (mStart){
             if (mAction == MenuActivity.REAL_TIME_ACTION){
-                //Mat img = mRgba.clone();
                 ImageProcessing imageProcessing = mCallback.getImageProcObject();
-                //ImageProcessing imageProcessing = ImageProcessor.getImageProcessing();
-                //ImageProcessing imageProcessing = new ImageProcessing(mContext);
-                imageProcessing.setMat(mRgba);
-                //ImageProcessor.setImageProcessing(imageProcessing);
+                //imageProcessing.setMat(mRgba);
+                imageProcessing.setMat(mRgbaOriginal);
 
                 mCallback.notifyDetectionFinished(imageProcessing, textDetector);
             } else {
