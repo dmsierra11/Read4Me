@@ -41,29 +41,6 @@ public class MainActivity extends Activity {
     private Spinner spinner2;
     private Context mContext;
 
-    /*static {
-        System.loadLibrary("opencv_java");
-    }
-
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i(TAG, "OpenCV loaded successfully");
-                    //mOpenCvCameraView.enableView();
-                    //mOpenCvCameraView.setOnTouchListener(TextDetectionActivity.this);
-                } break;
-                default:
-                {
-                    super.onManagerConnected(status);
-                    Log.e(TAG, "Opencv not loaded successfully");
-                } break;
-            }
-        }
-    };*/
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -244,9 +221,38 @@ public class MainActivity extends Activity {
     }
 
     public void installTesseract(String tessdata){
+        String[] langs = getLanguages("iso3");
+
+        for (int i=0; i < langs.length; i++){
+            String languageFile = tessdata + langs[i] + ".traineddata";
+            if (!(new File(languageFile)).exists()) {
+                try {
+
+                    AssetManager assetManager = mContext.getAssets();
+                    InputStream in = assetManager.open("tessdata/" + langISO3 + ".traineddata");
+                    //GZIPInputStream gin = new GZIPInputStream(in);
+                    OutputStream out = new FileOutputStream(languageFile);
+
+                    // Transfer bytes from in to out
+                    byte[] buf = new byte[1024];
+                    int len;
+                    //while ((lenf = gin.read(buff)) > 0) {
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                    in.close();
+                    //gin.close();
+                    out.close();
+
+                    Log.d(TAG, "Copied " + langISO3 + " traineddata");
+                } catch (IOException e) {
+                    Log.e(TAG, "Was unable to copy " + langISO3 + " traineddata " + e.toString());
+                }
+            }
+        }
 
         // lang.traineddata file with the app (in assets folder)
-        if (!(new File(tessdata + langISO3 + ".traineddata")).exists()) {
+        /*if (!(new File(tessdata + langISO3 + ".traineddata")).exists()) {
             try {
 
                 AssetManager assetManager = mContext.getAssets();
@@ -269,7 +275,7 @@ public class MainActivity extends Activity {
             } catch (IOException e) {
                 Log.e(TAG, "Was unable to copy " + langISO3 + " traineddata " + e.toString());
             }
-        }
+        }*/
     }
 
     public void installSVM(String svm){

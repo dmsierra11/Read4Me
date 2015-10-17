@@ -12,6 +12,7 @@ import com.example.danielsierraf.read4me.interfaces.CustomCameraInterface;
 import org.opencv.android.JavaCameraView;
 
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,6 +62,15 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
     }
 
     public void setResolution(Size resolution) {
+        Camera.Parameters params = mCamera.getParameters();
+        List<Size> supported_sizes = params.getSupportedPreviewSizes();
+        List<String> sizes = new ArrayList<>();
+        for (Size size: supported_sizes){
+            String preview_size = size.width+"x"+size.height;
+            sizes.add(preview_size);
+        }
+        Log.d(TAG, "Supported preview sizes: " + Arrays.toString(sizes.toArray()));
+
         disconnectCamera();
         mMaxHeight = resolution.height;
         mMaxWidth = resolution.width;
@@ -97,16 +107,18 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
 
     public void setPictureSize(){
         Camera.Parameters params = mCamera.getParameters();
+
         List<Size> supported_sizes = params.getSupportedPictureSizes();
-        Log.d(TAG, "Supported picture sizes: " + Arrays.toString(supported_sizes.toArray()));
-        /*for (Size size: params.getSupportedPictureSizes()){
-            if (size.width == width && size.height == height){
-                params.setPictureSize(width, height);
-                mCamera.setParameters(params);
-            }
-        }*/
+        List<String> sizes = new ArrayList<>();
+        for (Size size: supported_sizes){
+            String picture_size = size.width+"x"+size.height;
+            sizes.add(picture_size);
+        }
+        Log.d(TAG, "Supported picture sizes: " + Arrays.toString(sizes.toArray()));
+
         //Size smallest = supported_sizes.get(supported_sizes.size()-2);
         Size biggest = supported_sizes.get(0);
+        Log.d(TAG, "Image picture size:" +biggest.width+"x"+biggest.height);
         params.setPictureSize(biggest.width, biggest.height);
         mCamera.setParameters(params);
         setResolution(biggest);

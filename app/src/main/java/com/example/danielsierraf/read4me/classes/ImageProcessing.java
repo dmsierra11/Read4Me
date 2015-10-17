@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.example.danielsierraf.read4me.activities.MainActivity;
+import com.example.danielsierraf.read4me.utils.AppConstant;
+import com.example.danielsierraf.read4me.utils.CustomUtils;
 import com.example.danielsierraf.read4me.utils.FileHandler;
 
 import org.opencv.android.Utils;
@@ -25,7 +27,6 @@ import java.io.Serializable;
  */
 public class ImageProcessing implements Serializable{
 
-    public static final String appName = "Read4Me";
     public static final String TAG = "ImageProcessing";
     private static final Scalar TEXT_RECT_COLOR = new Scalar(0, 255, 0, 255);
     private static final Scalar TEXT_COLOR = new Scalar(0, 255, 255, 0);
@@ -49,6 +50,13 @@ public class ImageProcessing implements Serializable{
         preprocess();
     }
 
+    public ImageProcessing(Context context, Bitmap bmp){
+        this.mContext = context;
+        //src = Highgui.imread(path, 1);
+        src = convertBitmapToMat(bmp);
+        preprocess();
+    }
+
     public ImageProcessing(Context context, Mat img){
         this.mContext = context;
         setMat(img);
@@ -67,15 +75,11 @@ public class ImageProcessing implements Serializable{
     //Getters
     public Mat getMat(){ return src; }
 
-    public Bitmap getMatBitmap(){
-        Log.d(TAG, "Creating bitmap");
-        Bitmap bmp = null;
-        if (src != null && !src.empty()){
-            bmp = Bitmap.createBitmap(src.cols(), src.rows(),Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(src, bmp);
-            Log.d(TAG, "Seteo Bitmap "+bmp.toString());
-        }
-        return bmp;
+    public Mat convertBitmapToMat(Bitmap bmp){
+        Mat img = new Mat();
+        Utils.bitmapToMat(bmp, img);
+        writeImage("bitmapToMat", AppConstant.TEST_PATH, img);
+        return img;
     }
 
     public Bitmap getMatBitmap(Mat img){
@@ -112,15 +116,12 @@ public class ImageProcessing implements Serializable{
     }
 
     //File handling
-    private boolean writeImage(String filename){
+    public boolean writeImage(String filename, String path, Mat src){
         //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         String ext = ".png";
         filename = filename+ext;
-        //String filename = "threshold0-Gauss.png";
-        //File file = new File(pic_path, filename);
-        //File file = new File(new FileHandler().getAlbumPublicStorageDir("Read4Me", ""), filename);
-        //File file = new File(new FileHandler().getExternalStorageDir(MainActivity.appFolder), filename);
-        File file = new File(new FileHandler().getExternalStorageDir(appName), filename);
+
+        File file = new File(path, filename);
 
         Boolean bool = null;
         filename = file.toString();
@@ -139,13 +140,10 @@ public class ImageProcessing implements Serializable{
     //File handling
     private boolean writeSegment(Mat segment, String filename){
         //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        String ext = ".png";
+        String ext = ".tiff";
         filename = filename+ext;
-        //String filename = "threshold0-Gauss.png";
-        //File file = new File(pic_path, filename);
-        //File file = new File(new FileHandler().getAlbumPublicStorageDir("Read4Me", ""), filename);
-        //File file = new File(new FileHandler().getExternalStorageDir(MainActivity.appFolder), filename);
-        File file = new File(new FileHandler().getExternalStorageDir(appName), filename);
+
+        File file = new File(AppConstant.TEST_PATH, filename);
 
         Boolean bool = null;
         filename = file.toString();
@@ -165,7 +163,7 @@ public class ImageProcessing implements Serializable{
     public Mat otsuThreshold(Mat img){
         Log.d(TAG, "Threshold");
         Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.medianBlur(img, img, 5);
+        //Imgproc.medianBlur(img, img, 5);
         Imgproc.threshold(img, img, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY);
         return img;
     }
@@ -184,19 +182,19 @@ public class ImageProcessing implements Serializable{
         // Since MORPH_X : 2,3,4,5 and 6
         int operation = morph_operator + 2;
 
-        Imgproc.morphologyEx( img, img, operation, element );
+        Imgproc.morphologyEx(img, img, operation, element);
 
         return img;
     }
 
     public Rect[] getBoundingBoxes(int[] boxes){
         Log.d(TAG, "Segmenting...");
-        //Mat img = src.clone();
+        Mat img = src.clone();
         Rect[] boundingBoxes = new Rect[boxes.length/4];
         Log.d(TAG, "BOXES "+boundingBoxes.length);
 
         if (MainActivity.TEST_MODE){
-            writeImage("original");
+            writeImage("original", AppConstant.TEST_PATH, src);
         }
 
         int idx = 0;
@@ -208,12 +206,12 @@ public class ImageProcessing implements Serializable{
             box.height = boxes[idx++];
             boundingBoxes[i] = box;
 
-            Core.rectangle(src, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
+            Core.rectangle(img, boundingBoxes[i].tl(), boundingBoxes[i].br(), TEXT_RECT_COLOR, 3);
         }
 
         Log.d(TAG, "Test Mode: "+MainActivity.TEST_MODE);
         if (MainActivity.TEST_MODE){
-            writeSegment(src, "detecccion");
+            writeImage("original", AppConstant.TEST_PATH, img);
             Log.d(TAG, "Se escribio la imagen en la carpeta de la aplicacion");
         }
 
@@ -255,11 +253,27 @@ public class ImageProcessing implements Serializable{
             Log.d(TAG, "Text: "+text);
         }
 
-        if (MainActivity.TEST_MODE){
+        /*if (MainActivity.TEST_MODE){
             writeImage("original");
-        }
+        }*/
 
         return text;
+    }
+
+    public String processDocument(String lang_read){
+        Log.d(TAG, "Thresholding");
+        src = otsuThreshold(src);
+        //OCR
+        Log.d(TAG, "OCRing");
+        Bitmap bmp = getMatBitmap(src);
+        OCR ocr = new OCR();
+        ocr.setLanguage(lang_read);
+
+        String output = ocr.recognizeText(bmp);
+
+        Log.d(TAG, "Text: " + output);
+
+        return output;
     }
 
 }

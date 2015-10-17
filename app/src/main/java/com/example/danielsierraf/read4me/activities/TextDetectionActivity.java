@@ -115,14 +115,9 @@ public class TextDetectionActivity extends Activity implements ImageProcessingIn
     public void notifyDetectionFinished(ImageProcessing imageProcessing, DetectTextNative textDetector) {
         this.textDetector = textDetector;
         this.imageProcessing = imageProcessing;
-        //ImageProcessor.setImageProcessing(imageProcessing);
-        //ImageProcessing imagProcess = ImageProcessor.getImageProcessing();
-        //Bundle args_ = new Bundle();
-        //args_.putSerializable("procObj", imageProcessing);
+
         if (mOCRFragment == null)
             mOCRFragment = new OCRFragment();
-
-        //mOCRFragment.setArguments(args_);
 
         mFragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
@@ -199,7 +194,7 @@ public class TextDetectionActivity extends Activity implements ImageProcessingIn
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //setContentView(R.layout.activity_edit_pic);
+        //setContentView(R.layout.fragment_crop_image);
         // Restore UI state from the savedInstanceState.
         // This bundle has also been passed to onCreate.
         mAction = savedInstanceState.getInt("action");

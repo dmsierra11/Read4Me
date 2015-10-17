@@ -1,5 +1,7 @@
 package com.example.danielsierraf.read4me.interfaces;
 
+import android.graphics.Bitmap;
+
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
 

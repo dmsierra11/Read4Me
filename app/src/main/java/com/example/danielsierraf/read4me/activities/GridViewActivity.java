@@ -14,7 +14,7 @@ import android.widget.GridView;
 import com.example.danielsierraf.read4me.adapters.*;
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.utils.AppConstant;
-import com.example.danielsierraf.read4me.utils.Utils;
+import com.example.danielsierraf.read4me.utils.CustomUtils;
 
 import java.util.ArrayList;
 
@@ -25,7 +25,7 @@ public class GridViewActivity extends Activity {
 
     private final String TAG = "GridViewActivity";
 
-    private Utils utils;
+    private CustomUtils customUtils;
     private ArrayList<String> imagePaths = new ArrayList<String>();
     private GridViewImageAdapter adapter;
     private GridView gridView;
@@ -38,13 +38,13 @@ public class GridViewActivity extends Activity {
 
         gridView = (GridView) findViewById(R.id.grid_view);
 
-        utils = new Utils(this);
+        customUtils = new CustomUtils(this);
 
         // Initilizing Grid View
         InitilizeGridLayout();
 
         // loading all image paths from SD card
-        imagePaths = utils.getFilePaths();
+        imagePaths = customUtils.getFilePaths();
 
         // Gridview adapter
         adapter = new GridViewImageAdapter(GridViewActivity.this, imagePaths,
@@ -55,8 +55,9 @@ public class GridViewActivity extends Activity {
         gridView.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView parent, View v, int position, long id) {
                 Log.d(TAG, "Position: "+position);
-                Intent i = new Intent(GridViewActivity.this, EditPicActivity.class);
+                Intent i = new Intent(GridViewActivity.this, ShowPicActivity.class);
                 i.putExtra("position", position);
+                //i.putExtra(EditPicActivity.EXTRA_ACTION, AppConstant.SELECT_PICTURE);
                 startActivity(i);
             }
         });
@@ -67,7 +68,7 @@ public class GridViewActivity extends Activity {
         float padding = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 AppConstant.GRID_PADDING, r.getDisplayMetrics());
 
-        columnWidth = (int) ((utils.getScreenWidth() - ((AppConstant.NUM_OF_COLUMNS + 1) * padding)) / AppConstant.NUM_OF_COLUMNS);
+        columnWidth = (int) ((customUtils.getScreenWidth() - ((AppConstant.NUM_OF_COLUMNS + 1) * padding)) / AppConstant.NUM_OF_COLUMNS);
 
         gridView.setNumColumns(AppConstant.NUM_OF_COLUMNS);
         gridView.setColumnWidth(columnWidth);

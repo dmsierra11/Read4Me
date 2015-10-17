@@ -5,12 +5,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.danielsierraf.read4me.utils.ImageHandler;
+import com.example.danielsierraf.read4me.utils.AppConstant;
 import com.example.danielsierraf.read4me.R;
 
 import java.io.File;
@@ -25,8 +26,8 @@ public class MenuActivity extends Activity {
     public static final int REAL_TIME_ACTION = 2;
 
     private final String TAG = "MenuActivity";
-    private final int SELECT_PICTURE = 1;
-    private final int REQUEST_IMAGE_CAPTURE = 2;
+    //private final int SELECT_PICTURE = 1;
+    //private final int REQUEST_IMAGE_CAPTURE = 2;
 
     private String mCurrentPhotoPath;
 
@@ -63,7 +64,7 @@ public class MenuActivity extends Activity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "RESULT CODE: "+resultCode);
         switch (requestCode){
-            case REQUEST_IMAGE_CAPTURE:
+            case AppConstant.REQUEST_IMAGE_CAPTURE:
                 if (resultCode == RESULT_OK) {
                     Log.d(TAG, "Picture taken");
 
@@ -73,25 +74,12 @@ public class MenuActivity extends Activity {
                     //Open the photo in anoter Activity.
                     Intent intent = new Intent(this, EditPicActivity.class);
                     intent.putExtra(EditPicActivity.EXTRA_PHOTO_DATA_PATH, mCurrentPhotoPath);
-                    intent.putExtra(EditPicActivity.EXTRA_ACTION, REQUEST_IMAGE_CAPTURE);
+                    //intent.putExtra(EditPicActivity.EXTRA_ACTION, AppConstant.REQUEST_IMAGE_CAPTURE);
                     startActivity(intent);
                     //handleBigCameraPhoto();
                 }
                 break;
             default:
-                if (resultCode == RESULT_OK) {
-                    Log.d(TAG, "Picture selected");
-
-                    Uri selectedImageUri = data.getData();
-                    String selectedImagePath = new ImageHandler(getApplicationContext()).getImagePath(selectedImageUri);
-
-                    //Open the photo in anoter Activity.
-                    Intent intent = new Intent(this, EditPicActivity.class);
-                    intent.putExtra(EditPicActivity.EXTRA_PHOTO_URI, selectedImageUri);
-                    intent.putExtra(EditPicActivity.EXTRA_PHOTO_DATA_PATH, selectedImagePath);
-                    intent.putExtra(EditPicActivity.EXTRA_ACTION, SELECT_PICTURE);
-                    startActivity(intent);
-                }
                 break;
 
 
@@ -122,7 +110,7 @@ public class MenuActivity extends Activity {
 
     public void callTakePicture(View v){
         // create Intent to take a picture and return control to the calling application
-        /*Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         File f = null;
 
@@ -136,10 +124,10 @@ public class MenuActivity extends Activity {
             mCurrentPhotoPath = null;
         }
 
-        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);*/
-        Intent intent = new Intent(this, TextDetectionActivity.class);
+        startActivityForResult(takePictureIntent, AppConstant.REQUEST_IMAGE_CAPTURE);
+        /*Intent intent = new Intent(this, TextDetectionActivity.class);
         intent.putExtra("action", TAKE_PHOTO_ACTION);
-        startActivity(intent);
+        startActivity(intent);*/
 
     }
 
@@ -147,8 +135,9 @@ public class MenuActivity extends Activity {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
+        /*File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);*/
+        File storageDir = new File(AppConstant.PHOTO_PATH);
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
 
         return image;

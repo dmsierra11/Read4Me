@@ -2,6 +2,8 @@ package com.example.danielsierraf.read4me.utils;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.Environment;
 import android.view.Display;
@@ -15,12 +17,12 @@ import java.util.Locale;
 /**
  * Created by danielsierraf on 8/15/15.
  */
-public class Utils {
+public class CustomUtils {
 
     private Context _context;
 
     // constructor
-    public Utils(Context context) {
+    public CustomUtils(Context context) {
         this._context = context;
     }
 
@@ -30,7 +32,7 @@ public class Utils {
 
         File directory = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                AppConstant.PHOTO_ALBUM);
+                AppConstant.APP_NAME);
 
         // check for directory
         if (directory.isDirectory()) {
@@ -56,7 +58,7 @@ public class Utils {
                 // image directory is empty
                 Toast.makeText(
                         _context,
-                        AppConstant.PHOTO_ALBUM
+                        AppConstant.APP_NAME
                                 + " is empty. Please load some images in it !",
                         Toast.LENGTH_LONG).show();
             }
@@ -64,7 +66,7 @@ public class Utils {
         } else {
             AlertDialog.Builder alert = new AlertDialog.Builder(_context);
             alert.setTitle("Error!");
-            alert.setMessage(AppConstant.PHOTO_ALBUM
+            alert.setMessage(AppConstant.APP_NAME
                     + " directory path is not valid! Please set the image directory name AppConstant.java class");
             alert.setPositiveButton("OK", null);
             alert.show();
@@ -104,5 +106,13 @@ public class Utils {
         }
         columnWidth = point.x;
         return columnWidth;
+    }
+
+    public Bitmap createBitmapFromPath(String path){
+        File image = new File(path);
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(), bmOptions);
+        //bitmap = Bitmap.createScaledBitmap(bitmap,parent.getWidth(),parent.getHeight(),true);
+        return bitmap;
     }
 }

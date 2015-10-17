@@ -62,6 +62,7 @@ public class GridViewImageAdapter extends BaseAdapter{
             imageView = (ImageView) convertView;
         }
 
+        Log.d(TAG, _filePaths.get(position));
         // get screen dimensions
         Bitmap image = decodeFile(_filePaths.get(position), imageWidth,
                 imageWidth);

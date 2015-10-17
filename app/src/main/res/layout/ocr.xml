@@ -4,10 +4,21 @@
     android:layout_height="match_parent"
     tools:context="com.example.danielsierraf.read4me.activities.TTSActivity">
 
-    <ImageView
-        android:id="@+id/ocr_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView"
+        android:layout_centerHorizontal="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/ocr_text"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+    </ScrollView>
 
     <ProgressBar
         style="?android:attr/progressBarStyleLarge"

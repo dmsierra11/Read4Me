@@ -2,8 +2,10 @@ package com.example.danielsierraf.read4me.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -17,9 +19,11 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import com.example.danielsierraf.read4me.R;
+import com.example.danielsierraf.read4me.activities.EditPicActivity;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
+import com.example.danielsierraf.read4me.utils.AppConstant;
 
 import org.opencv.core.Mat;
 
@@ -35,9 +39,9 @@ public class FullScreenImageAdapter extends PagerAdapter{
     private Activity _activity;
     private ArrayList<String> _imagePaths;
     private LayoutInflater inflater;
-    private ImageProcessingInterface mCallback;
-    //private Context mContext;
-    private ProgressBar progressBar;
+    //private ImageProcessingInterface mCallback;
+    private Context mContext;
+    //private ProgressBar progressBar;
     private int selected;
     private boolean first_pass;
 
@@ -46,8 +50,9 @@ public class FullScreenImageAdapter extends PagerAdapter{
                                   ArrayList<String> imagePaths) {
         _activity = activity;
         _imagePaths = imagePaths;
-        mCallback = (ImageProcessingInterface) activity;
+        //mCallback = (ImageProcessingInterface) activity;
         first_pass = true;
+        mContext = activity.getApplicationContext();
     }
 
     @Override
@@ -62,26 +67,27 @@ public class FullScreenImageAdapter extends PagerAdapter{
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        ImageView imgDisplay;
-        Button btnClose;
 
         inflater = (LayoutInflater) _activity
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View viewLayout = inflater.inflate(R.layout.activity_edit_pic, container,
+        View viewLayout = inflater.inflate(R.layout.activity_show_pic, container,
                 false);
 
-        imgDisplay = (ImageView) viewLayout.findViewById(R.id.img_to_edit);
-        btnClose = (Button) viewLayout.findViewById(R.id.btnClose);
-        Button btnRead = (Button) viewLayout.findViewById(R.id.btn_read_text);
-        progressBar = (ProgressBar) viewLayout.findViewById(R.id.progressBarImgProc);
+        ImageView imgDisplay = (ImageView) viewLayout.findViewById(R.id.img_gallery);
+        Button btnClose = (Button) viewLayout.findViewById(R.id.btnClose);
+        Button btnAccept = (Button) viewLayout.findViewById(R.id.btnAccept);
+        //progressBar = (ProgressBar) viewLayout.findViewById(R.id.progressBarImgProc);
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        Bitmap bitmap = BitmapFactory.decodeFile(_imagePaths.get(position), options);
+
+        final String path = _imagePaths.get(position);
+
+        Bitmap bitmap = BitmapFactory.decodeFile(path, options);
         imgDisplay.setImageBitmap(bitmap);
 
         if (first_pass){
-            Log.d(TAG, "Image: "+_imagePaths.get(position));
+            Log.d(TAG, "Image: "+path);
             selected = position;
             first_pass = false;
         }
@@ -94,11 +100,15 @@ public class FullScreenImageAdapter extends PagerAdapter{
             }
         });
 
-        btnRead.setOnClickListener(new View.OnClickListener() {
+        btnAccept.setOnClickListener(new View.OnClickListener() {
                                        @Override
                                        public void onClick(View v) {
-                                           ImageProcessingTask imageProcessingTask = new ImageProcessingTask();
-                                           imageProcessingTask.execute();
+                                           Intent intent = new Intent(_activity, EditPicActivity.class);
+                                           intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                           intent.putExtra(EditPicActivity.EXTRA_PHOTO_DATA_PATH, path);
+                                           /*intent.putExtra(EditPicActivity.EXTRA_ACTION,
+                                                   AppConstant.SELECT_PICTURE);*/
+                                           mContext.startActivity(intent);
                                        }
                                    }
 
@@ -113,34 +123,5 @@ public class FullScreenImageAdapter extends PagerAdapter{
     public void destroyItem(ViewGroup container, int position, Object object) {
         ((ViewPager) container).removeView((RelativeLayout) object);
 
-    }
-
-    public class ImageProcessingTask extends AsyncTask<Void, Integer, Void> {
-
-        DetectTextNative detectText;
-        ImageProcessing imageProcessing;
-
-        @Override
-        protected void onPreExecute() {
-            progressBar.setVisibility(ProgressBar.VISIBLE);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            //Deteccion de texto (nativo c++)
-            detectText = mCallback.getDetectTextObject();
-            imageProcessing = mCallback.getImageProcObject();
-            imageProcessing.setMat(_imagePaths.get(selected));
-            Mat src = imageProcessing.getMat();
-            detectText.detect(src.getNativeObjAddr());
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            Log.d(TAG, "Detection finished");
-            progressBar.setVisibility(ProgressBar.INVISIBLE);
-            mCallback.notifyDetectionFinished(imageProcessing, detectText);
-        }
     }
 }

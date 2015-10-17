@@ -997,14 +997,16 @@ void DetectText::applySVM(vector<Mat>& segments, String path){
     sort(posible_regions.begin(), posible_regions.end(), DetectText::spaticalOrder);
     for(int i=0; i< segments.size(); i++)
     {
-        
+        /*
         Mat img=segments[i];
         Mat p= img.reshape(1, 1);
         p.convertTo(p, CV_32FC1);
         
         int response = (int)svmClassifier.predict( p );
         cout << "Response: " << response << endl;
-        if(response==1)
+
+        //TODO: descomentar despues
+        if(response==1)*/
             boxesBothSides_.push_back(posible_regions[i]);
         //cout << "Number of words: " << boxesBothSides_.size() << endl;
     }
@@ -1166,25 +1168,7 @@ float DetectText::spellCheck(string& str, string& output, int method) {
 Mat DetectText::filterPatch(const Mat& patch) {
     Mat result;
     
-    /*Mat resultResized;
-    cout << "PATCHS SIZE: " << patch.cols() << "x" << patch.rows() << endl;
-    if (patch.cols() < 500) {
-        if (patch.cols() > 400)
-            resultResized = resize(patch, 0, 0, 1.5);
-        else if (patch.cols() > 300)
-            resultResized = resize(patch, 0, 0, 2);
-        else if (patch.cols() > 200) resultResized = resize(patch, 0, 0, 2.5);
-        else resultResized = resize(patch, 0, 0, 3);
-    }
-    //resultResized.create(33,144, CV_8UC3);
-    //resize(patch, resultResized, resultResized.size(), 0, 0, INTER_CUBIC);
-    resultResized = patch;*/
-   
-    //Noise removal
-    //GaussianBlur(patch, patch, cv::Size(5,5), 5);
-    //blur( patch, patch, Size(5,5) );
-    
-    medianBlur( patch, patch, 5 );
+    //medianBlur( patch, patch, 5 );
     //medianBlur( resultResized, resultResized, 5 );
     
     //Binarisation
@@ -1192,11 +1176,6 @@ Mat DetectText::filterPatch(const Mat& patch) {
     threshold(patch, patch, 0, 255, THRESH_BINARY | CV_THRESH_OTSU);
     //FOR DARK BACKGROUND
     //threshold(patch, patch, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
-    
-    //Noise removal
-    //GaussianBlur(patch, patch, cv::Size(5,5), 5);
-    //blur( patch, patch, Size(5,5) );
-    //medianBlur( patch, patch, 5 );
     
     //Morphology transformation
     //MORPH_RECT

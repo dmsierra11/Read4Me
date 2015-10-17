@@ -37,4 +37,9 @@
     <string name="lang_read">lang_read</string>
     <string name="title_activity_tts">TTSActivity</string>
     <string name="tap2Start">Toque de tela para começar</string>
+    <string name="accept_pic">aceitar</string>
+    <string name="close_pic">Fechar</string>
+    <string name="gallery">galeria</string>
+    <string name="lang2read">Língua de ler </string>
+    <string name="lang2hear">Idioma para ouvir </string>
 </resources>

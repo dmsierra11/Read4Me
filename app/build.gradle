@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.danielsierraf.read4me"
-        minSdkVersion 11
+        minSdkVersion 14
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
@@ -40,9 +40,15 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile project(':openCVLibrary2410')
     compile project(':tess-two')
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.edmodo:cropper:1.0.1'
 }

@@ -59,14 +59,11 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     private Button btn_tap2start;
     private ImageProcessingInterface mCallback;
     private DetectTextNative textDetector;
+    private ImageProcessing imageProcessing;
     private boolean mDetectionFinished;
     private int[] boxes;
     private boolean mStart;
     private Context mContext;
-
-    static {
-        System.loadLibrary("opencv_java");
-    }
 
     private SubMenu mColorEffectsMenu;
     private MenuItem[] mEffectMenuItems;
@@ -75,6 +72,10 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     private MenuItem[] mResolutionMenuItems;
     private int mAction;
     private CustomCameraInterface mCallbackPicture;
+
+    static {
+        System.loadLibrary("opencv_java");
+    }
 
     /**
      * called once the fragment is associated with its activity.
@@ -93,6 +94,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
             mCallback = (ImageProcessingInterface) activity;
             mCallbackPicture = (CustomCameraInterface) activity;
             textDetector = mCallback.getDetectTextObject();
+            imageProcessing = mCallback.getImageProcObject();
             mStart = false;
             mContext = Read4MeApp.getInstance();
         } catch (Exception e) {
@@ -181,7 +183,6 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         super.onDetach();
         
         mCallback = null;
-        //textDetector = null;
     }
 
     @Override
@@ -194,14 +195,14 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         mDetectionFinished = true;
         boxes = null;
 
-        /*if (mOpenCvCameraView.isPictureSizeSupported())
-            mOpenCvCameraView.setPictureSize();*/
+        if (mOpenCvCameraView.isPictureSizeSupported())
+            mOpenCvCameraView.setPictureSize();
 
-        /*Camera.Size resolution = mOpenCvCameraView.getResolution();
-        Log.d(TAG, "Resolution: " + resolution.height + "x" + resolution.width);
-        Camera.Size bestSize = mOpenCvCameraView.findBestSize();
-        Log.d(TAG, "Best size: " + bestSize.height + "x" + bestSize.width);
-        mOpenCvCameraView.setResolution(bestSize);*/
+        //Camera.Size resolution = mOpenCvCameraView.getResolution();
+        //Log.d(TAG, "Resolution: " + resolution.height + "x" + resolution.width);
+        //Camera.Size bestSize = mOpenCvCameraView.findBestSize();
+        //Log.d(TAG, "Best size: " + bestSize.height + "x" + bestSize.width);
+        //mOpenCvCameraView.setResolution(bestSize);
         Camera.Size new_resolution = mOpenCvCameraView.getResolution();
         Toast.makeText(mContext, new_resolution.width+"x"+new_resolution.height,
                 Toast.LENGTH_SHORT).show();
@@ -263,18 +264,19 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     public boolean onTouch(View v, MotionEvent event) {
 
         if (mStart){
+            imageProcessing.setMat(mRgbaOriginal);
             if (mAction == MenuActivity.REAL_TIME_ACTION){
-                ImageProcessing imageProcessing = mCallback.getImageProcObject();
+                //imageProcessing = mCallback.getImageProcObject();
                 //imageProcessing.setMat(mRgba);
-                imageProcessing.setMat(mRgbaOriginal);
-
+                //imageProcessing.setMat(mRgbaOriginal);
                 mCallback.notifyDetectionFinished(imageProcessing, textDetector);
             } else {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
                 String currentDateandTime = sdf.format(new Date());
-                File file = new FileHandler().getAlbumPublicStorageDir(AppConstant.PHOTO_ALBUM, "pictures");
-                String fileName = file.getPath() + "/" + currentDateandTime + ".jpg";
-                mOpenCvCameraView.takePicture(fileName, mCallbackPicture);
+                File file = new FileHandler().getAlbumPublicStorageDir(AppConstant.APP_NAME, "pictures");
+                //String fileName = file.getPath() + "/" + currentDateandTime + ".png";
+                //mOpenCvCameraView.takePicture(fileName, mCallbackPicture);
+                takePicture(currentDateandTime, file.getPath());
             }
         } else {
             mStart = true;
@@ -282,6 +284,12 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         }
 
         return false;
+    }
+
+    private void takePicture(String currentDateandTime, String file) {
+        imageProcessing.writeImage(currentDateandTime, file, imageProcessing.getMat());
+        String fileName = file + "/" + currentDateandTime + ".png";
+        mCallbackPicture.notifyPictureTaken(fileName);
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
