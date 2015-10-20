@@ -29,7 +29,7 @@ import java.util.List;
 public class MainActivity extends Activity {
 
 
-    public final static boolean TEST_MODE = true;
+    public final static boolean TEST_MODE = false;
     public final static String appFolder = new FileHandler().getExternalStorageDir("Read4Me").getPath();
 
     private final String TAG = "MainActivity";

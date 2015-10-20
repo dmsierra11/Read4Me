@@ -42,4 +42,5 @@
     <string name="gallery">Gallery</string>
     <string name="lang2hear">Sprache zu hören, </string>
     <string name="lang2read">Sprache zu lesen </string>
+    <string name="change_lang">Änderung Sprachen</string>
 </resources>

@@ -37,7 +37,7 @@
     <string name="lang_hear">lang_hear</string>
     <string name="country_hear">country_hear</string>
     <string name="title_activity_tts">TTSActivity</string>
-    <string name="title_activity_color_detect">ColorBlobDetectionActivity</string>
+    <string name="title_activity_color_detect">Real Time Detection</string>
     <string name="title_activity_show_pic">Picture</string>
     <string name="gallery">Load Picture</string>
     <string name="tap2Start">Tap screen to start</string>
@@ -46,4 +46,5 @@
     <string name="accept_pic">Accept</string>
     <string name="lang2read">Language to read</string>
     <string name="lang2hear">Language to hear</string>
+    <string name="change_lang">Change languages</string>
 </resources>

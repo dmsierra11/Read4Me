@@ -21,6 +21,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Created by danielsierraf on 8/7/15.
@@ -29,36 +30,38 @@ public class ImageProcessing implements Serializable{
 
     public static final String TAG = "ImageProcessing";
     private static final Scalar TEXT_RECT_COLOR = new Scalar(0, 255, 0, 255);
-    private static final Scalar TEXT_COLOR = new Scalar(0, 255, 255, 0);
+    //private static final Scalar TEXT_COLOR = new Scalar(0, 255, 255, 0);
 
-    private Context mContext;
+    //private Context mContext;
     private Mat src;
 
     static {
         System.loadLibrary("opencv_java");
     }
 
+    private String output_text;
+
     //Constructors
     public ImageProcessing(Context context){
-        this.mContext = context;
+        //this.mContext = context;
         src = new Mat();
     }
 
     public ImageProcessing(Context context, String path){
-        this.mContext = context;
+        //this.mContext = context;
         src = Highgui.imread(path, 1);
         preprocess();
     }
 
     public ImageProcessing(Context context, Bitmap bmp){
-        this.mContext = context;
+        //this.mContext = context;
         //src = Highgui.imread(path, 1);
         src = convertBitmapToMat(bmp);
         preprocess();
     }
 
     public ImageProcessing(Context context, Mat img){
-        this.mContext = context;
+        //this.mContext = context;
         setMat(img);
     }
 
@@ -74,6 +77,10 @@ public class ImageProcessing implements Serializable{
 
     //Getters
     public Mat getMat(){ return src; }
+
+    public String getText(){
+        return output_text;
+    }
 
     public Mat convertBitmapToMat(Bitmap bmp){
         Mat img = new Mat();
@@ -219,17 +226,20 @@ public class ImageProcessing implements Serializable{
 
     }
 
-    public String readPatches(Rect[] boundingBoxes, String lang_read){
+    public String[] readPatches(Rect[] boundingBoxes, String lang_read){
         Log.d(TAG, "Reading "+boundingBoxes.length+ "boxes");
-        String text = "";
+        //String text = "";
+        output_text = "";
+        ArrayList<String> words = new ArrayList<String>();
+        OCR ocr = new OCR(lang_read);
         for (int i=0; i < boundingBoxes.length; i++){
             Rect box = boundingBoxes[i];
             Mat ROI = src.submat(box.y, box.y + box.height, box.x, box.x + box.width);
-            Log.d(TAG, "Segmented "+i+" COLS: "+ROI.cols()+" ROWS: "+ROI.rows());
+            //Log.d(TAG, "Segmented "+i+" COLS: "+ROI.cols()+" ROWS: "+ROI.rows());
             ROI = otsuThreshold(ROI);
-            Log.d(TAG, "Thresholded");
+            //Log.d(TAG, "Thresholded");
             Mat filtered = MorphologyTransformation(ROI);
-            Log.d(TAG, "Morphology transformed");
+            //Log.d(TAG, "Morphology transformed");
 
             if (MainActivity.TEST_MODE) {
                 Log.d(TAG, "Writing segment.." + i);
@@ -239,25 +249,24 @@ public class ImageProcessing implements Serializable{
 
             //OCR
             Bitmap bmp = getMatBitmap(filtered);
-            OCR ocr = new OCR();
-            ocr.setLanguage(lang_read);
 
             String output = ocr.recognizeText(bmp);
 
-            int offset = 10;
-            Core.putText(src, output, new Point(box.x + offset, box.y + box.height + offset),
-                    Core.FONT_HERSHEY_DUPLEX, 1, TEXT_COLOR, 2);
-
-            //text = text + ocr.recognizeText(bmp) + " ";
-            text = text + output + " ";
-            Log.d(TAG, "Text: "+text);
+            words.add(output);
+            output_text = output_text + output + " ";
+            Log.d(TAG, "Text: "+output_text);
         }
+
+        ocr.finalize();
 
         /*if (MainActivity.TEST_MODE){
             writeImage("original");
         }*/
 
-        return text;
+        String[] wordsArray = new String[words.size()];
+        wordsArray = words.toArray(wordsArray);
+
+        return wordsArray;
     }
 
     public String processDocument(String lang_read){

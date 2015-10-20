@@ -61,6 +61,13 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
         return mCamera.getParameters().getSupportedFocusModes();
     }
 
+    public void setFocusMode(String focusMode){
+        Camera.Parameters params = mCamera.getParameters();
+        Log.d(TAG, "Focus mode: "+focusMode);
+        params.setFocusMode(focusMode);
+        mCamera.setParameters(params);
+    }
+
     public void setResolution(Size resolution) {
         Camera.Parameters params = mCamera.getParameters();
         List<Size> supported_sizes = params.getSupportedPreviewSizes();

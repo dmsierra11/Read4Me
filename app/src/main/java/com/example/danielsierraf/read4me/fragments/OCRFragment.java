@@ -3,6 +3,8 @@ package com.example.danielsierraf.read4me.fragments;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +20,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.danielsierraf.read4me.R;
+import com.example.danielsierraf.read4me.activities.MainActivity;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
 import com.example.danielsierraf.read4me.classes.GoogleTranslate;
 import com.example.danielsierraf.read4me.utils.FileHandler;
@@ -117,25 +120,39 @@ public class OCRFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_change_langs) {
+            Intent intent = new Intent(mContext, MainActivity.class);
+            startActivity(intent);
+        }
         return super.onOptionsItemSelected(item);
     }
 
     private class OCReader extends AsyncTask<Void, Integer, String>{
 
-       ImageProcessing imageProcessing;
+       //ImageProcessing imageProcessing;
 
         @Override
         protected String doInBackground(Void... params) {
 
             String lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
             String lang_hear = FileHandler.getDefaults(mContext.getString(R.string.lang_hear), mContext);
-            String path = new FileHandler().getExternalStorageDir(appName).getPath()+
-                    "/neural_networks/SVM.xml";
+            /*String path = new FileHandler().getExternalStorageDir(appName).getPath()+
+                    "/neural_networks/SVM.xml";*/
 
             DetectTextNative textDetector = mCallback.getDetectTextObject();
-            imageProcessing = mCallback.getImageProcObject();
-            String text = "";
-            if (textDetector != null){
+            ImageProcessing imageProcessing = mCallback.getImageProcObject();
+
+            String text = imageProcessing.getText();
+            if (textDetector == null)
+                text = imageProcessing.processDocument(lang_read);
+
+            /*else {
                 int[] boundBoxes = textDetector.getBoundingBoxes();
 
                 if (boundBoxes != null){
@@ -162,9 +179,7 @@ public class OCRFragment extends Fragment {
                 Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
                 //OCR
                 text = imageProcessing.readPatches(boundingBoxes, lang_read);
-            } else {
-                text = imageProcessing.processDocument(lang_read);
-            }
+            }*/
 
             String lang_readISO3 = convertISO3ToNormal(lang_read);
             if (!lang_readISO3.equals(lang_hear)){

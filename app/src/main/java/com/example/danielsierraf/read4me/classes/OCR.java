@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import com.example.danielsierraf.read4me.utils.AppConstant;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
 /**
@@ -20,7 +21,8 @@ import com.googlecode.tesseract.android.TessBaseAPI;
  */
 public class OCR {
     private static final String TAG = "OCR";
-    public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/Read4Me/";
+    //public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/Read4Me/";
+    private final TessBaseAPI baseApi = new TessBaseAPI();
 
     // You should have the trained data file in assets folder
     // You can get them at:
@@ -31,10 +33,12 @@ public class OCR {
 
     public OCR(){
         lang = "eng";
+        initialize();
     }
 
     public OCR(String _lang){
         lang = _lang;
+        initialize();
     }
 
     public void setLanguage(String _lang){
@@ -45,10 +49,28 @@ public class OCR {
         return lang;
     }
 
-    public String recognizeText(Bitmap bitmap){
-        String recognizedText = "";
-        String output = "";
+    public void initialize(){
         try {
+            Log.d(TAG, "Before baseApi");
+
+            //baseApi = new TessBaseAPI();
+            //baseApi.setDebug(true);
+            //baseApi.init(DATA_PATH, lang, 2);
+            baseApi.init(AppConstant.TEST_PATH, lang);
+            //set whitelist
+            baseApi.setPageSegMode(TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED);
+            baseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK);
+
+            //baseApi.end();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.e(TAG, ex.getMessage());
+            // TODO: handle exception
+        }
+    }
+
+    public String recognizeText(Bitmap bitmap){
+        /*try {
             Log.d(TAG, "Before baseApi");
 
             TessBaseAPI baseApi = new TessBaseAPI();
@@ -73,6 +95,30 @@ public class OCR {
             }
 
             baseApi.end();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.e(TAG, ex.getMessage());
+            // TODO: handle exception
+        }*/
+
+        String recognizedText = "";
+        String output = "";
+
+        try {
+            baseApi.setImage(bitmap);
+
+            recognizedText = baseApi.getUTF8Text();
+            Log.d(TAG, "RECOGNIZED TEXT: "+recognizedText);
+            //spell check
+            String[] tmp = recognizedText.split(" ");
+            Log.d(TAG, "Words: "+Arrays.toString(tmp));
+            for (int i = 0; i < tmp.length; i++){
+                Log.d(TAG, "Spell checking: "+tmp[i]);
+                String word = spellCheck(tmp[i], 0);
+                Log.d(TAG, "RECOGNIZED TEXT FILTERED: "+word);
+                output += word;
+            }
+            //output = recognizedText;
         } catch (Exception ex) {
             ex.printStackTrace();
             Log.e(TAG, ex.getMessage());
@@ -151,5 +197,9 @@ public class OCR {
         output += withoutStrangeMarks + " ";
 
         return output;
+    }
+
+    public void finalize() {
+        baseApi.end();
     }
 }

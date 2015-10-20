@@ -41,4 +41,6 @@
     <string name="lang2hear">Lenguaje a escuchar</string>
     <string name="lang2read">Lenguaje a leer</string>
     <string name="title_activity_show_pic">Foto</string>
+    <string name="change_lang">Cambiar idiomas</string>
+    <string name="title_activity_color_detect">Detección en Tiempo Real</string>
 </resources>
