@@ -34,22 +34,25 @@ public class ImageProcessing implements Serializable{
 
     //private Context mContext;
     private Mat src;
+    private Word[] words;
 
     static {
         System.loadLibrary("opencv_java");
     }
 
-    private String output_text;
+    //private String output_text;
 
     //Constructors
     public ImageProcessing(Context context){
         //this.mContext = context;
         src = new Mat();
+        words = null;
     }
 
     public ImageProcessing(Context context, String path){
         //this.mContext = context;
         src = Highgui.imread(path, 1);
+        words = null;
         preprocess();
     }
 
@@ -57,12 +60,14 @@ public class ImageProcessing implements Serializable{
         //this.mContext = context;
         //src = Highgui.imread(path, 1);
         src = convertBitmapToMat(bmp);
+        words = null;
         preprocess();
     }
 
     public ImageProcessing(Context context, Mat img){
         //this.mContext = context;
         setMat(img);
+        words = null;
     }
 
     //Setters
@@ -78,7 +83,17 @@ public class ImageProcessing implements Serializable{
     //Getters
     public Mat getMat(){ return src; }
 
+    public Word[] getWords(){
+        return words;
+    }
+
     public String getText(){
+        String output_text = "";
+        if (words != null){
+            for (Word word: words) {
+                output_text = output_text + word.getText() + " ";
+            }
+        }
         return output_text;
     }
 
@@ -226,47 +241,50 @@ public class ImageProcessing implements Serializable{
 
     }
 
-    public String[] readPatches(Rect[] boundingBoxes, String lang_read){
+    public Word[] readPatches(Rect[] boundingBoxes, OCR ocr){
         Log.d(TAG, "Reading "+boundingBoxes.length+ "boxes");
         //String text = "";
-        output_text = "";
-        ArrayList<String> words = new ArrayList<String>();
-        OCR ocr = new OCR(lang_read);
+        //output_text = "";
+        ArrayList<Word> wordsList = new ArrayList<Word>();
+        //OCR ocr = new OCR(lang_read);
         for (int i=0; i < boundingBoxes.length; i++){
             Rect box = boundingBoxes[i];
             Mat ROI = src.submat(box.y, box.y + box.height, box.x, box.x + box.width);
             //Log.d(TAG, "Segmented "+i+" COLS: "+ROI.cols()+" ROWS: "+ROI.rows());
             ROI = otsuThreshold(ROI);
             //Log.d(TAG, "Thresholded");
-            Mat filtered = MorphologyTransformation(ROI);
+            //Mat filtered = MorphologyTransformation(ROI);
+
             //Log.d(TAG, "Morphology transformed");
 
-            if (MainActivity.TEST_MODE) {
+            /*if (MainActivity.TEST_MODE) {
                 Log.d(TAG, "Writing segment.." + i);
                 Log.d(TAG, "Size patch: "+filtered.cols()+"x"+filtered.rows());
                 writeSegment(filtered, "" + i);
-            }
+            }*/
 
             //OCR
-            Bitmap bmp = getMatBitmap(filtered);
+            //Bitmap bmp = getMatBitmap(filtered);
+            Bitmap bmp = getMatBitmap(ROI);
 
             String output = ocr.recognizeText(bmp);
 
-            words.add(output);
-            output_text = output_text + output + " ";
-            Log.d(TAG, "Text: "+output_text);
+            Word word = new Word(output, box);
+            wordsList.add(word);
+            //output_text = output_text + output + " ";
+            //Log.d(TAG, "Text: "+output_text);
         }
 
-        ocr.finalize();
+        //ocr.finalize();
 
         /*if (MainActivity.TEST_MODE){
             writeImage("original");
         }*/
 
-        String[] wordsArray = new String[words.size()];
-        wordsArray = words.toArray(wordsArray);
+        words = new Word[wordsList.size()];
+        words = wordsList.toArray(words);
 
-        return wordsArray;
+        return words;
     }
 
     public String processDocument(String lang_read){

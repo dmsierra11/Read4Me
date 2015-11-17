@@ -109,6 +109,7 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
     @Override
     protected void onDestroy() {
         mEditPicFragment = null;
+        mTts.shutdown();
         super.onDestroy();
     }
 

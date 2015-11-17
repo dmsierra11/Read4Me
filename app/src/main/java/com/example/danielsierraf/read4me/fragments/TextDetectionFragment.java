@@ -25,6 +25,8 @@ import android.widget.Toast;
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.activities.MainActivity;
 import com.example.danielsierraf.read4me.activities.MenuActivity;
+import com.example.danielsierraf.read4me.classes.OCR;
+import com.example.danielsierraf.read4me.classes.Word;
 import com.example.danielsierraf.read4me.utils.AppConstant;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
 import com.example.danielsierraf.read4me.utils.FileHandler;
@@ -84,8 +86,12 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     }
 
     private String lang_read;
-    private String[] words;
+    private Word[] words;
     private boolean isBusy;
+    private OCR ocr;
+    private Boolean mRecognitionFinished;
+    private TextRecognitionTask textRecognitionTask;
+    private TextDetectionTask textDetectionTask;
 
     /**
      * called once the fragment is associated with its activity.
@@ -107,7 +113,6 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
             imageProcessing = mCallback.getImageProcObject();
             mStart = false;
             mContext = Read4MeApp.getInstance();
-            lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
         } catch (Exception e) {
             /*throw new ClassCastException(activity.toString()
                     + " must implement TextDetectionInterface");*/
@@ -196,8 +201,6 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         mCallback = null;
     }
 
-
-
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
@@ -210,6 +213,8 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         boxes = null;
         isBusy = false;
         words = null;
+        lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
+        ocr = new OCR(lang_read);
 
         if (mOpenCvCameraView.isPictureSizeSupported())
             mOpenCvCameraView.setPictureSize();
@@ -253,6 +258,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     @Override
     public void onCameraViewStopped() {
         mRgba.release();
+        ocr.finalize();
     }
 
     @Override
@@ -261,14 +267,11 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         //mRgbaOriginal = mRgba.clone();
 
         if (mStart){
-            //Deteccion de texto (nativo c++)
-            /*DetectTextNative textDetector = mCallback.getDetectTextObject();
-            textDetector.detect(mRgba.getNativeObjAddr());
-            int[] boxes = textDetector.getBoundingBoxes();*/
+
             if (mDetectionFinished){
                 if (!isBusy){
                     mDetectionFinished = false;
-                    TextDetectionTask textDetectionTask = new TextDetectionTask();
+                    textDetectionTask = new TextDetectionTask();
                     textDetectionTask.execute();
                 }
             }
@@ -287,19 +290,20 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
 
                     Core.rectangle(mRgba, boundingBoxes[i].tl(), boundingBoxes[i].br(), CONTOUR_COLOR, 2);
 
-                    if (words != null){
-                        Log.d(TAG, "Detected: "+words.toString());
-                        int offset = 10;
-                        Core.putText(mRgba, words[i], new Point(box.x + offset, box.y + box.height + offset),
-                            Core.FONT_HERSHEY_COMPLEX_SMALL, 1, TEXT_COLOR, 1);
-                    }
-
-                    /*String output = imageProcessing.getText();
-                    if (output != null){
-                        int offset = 10;
-                        Core.putText(mRgba, output, new Point(boundingBoxes[i].x + offset,
-                                        boundingBoxes[i].y + boundingBoxes[i].height + offset),
-                                Core.FONT_HERSHEY_DUPLEX, 1, TEXT_COLOR, 1);
+                    /*if (words != null){
+                        for (int i = 0; i < words.length; i++ ) {
+                            try {
+                                int offset = 10;
+                                Core.rectangle(mRgba, words[i].getBox().tl(), words[i].getBox().br(), CONTOUR_COLOR, 2);
+                                Core.putText(mRgba, words[i].getText(), new Point(words[i].getBox().x + offset
+                                                , words[i].getBox().y + words[i].getBox().height + offset),
+                                        Core.FONT_HERSHEY_COMPLEX_SMALL, 1, TEXT_COLOR, 1);
+                            } catch (Exception e){
+                                e.printStackTrace();
+                                Log.e(TAG, "Error IndexOutOfBounds");
+                            }
+                        }
+                        //Log.d(TAG, "Detected: "+words.toString());
                     }*/
 
                 }
@@ -313,21 +317,9 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     public boolean onTouch(View v, MotionEvent event) {
 
         if (mStart){
-            //imageProcessing.setMat(mRgbaOriginal);
-            imageProcessing.setMat(mRgba);
-            if (mAction == MenuActivity.REAL_TIME_ACTION){
-                //imageProcessing = mCallback.getImageProcObject();
-                //imageProcessing.setMat(mRgba);
-                //imageProcessing.setMat(mRgbaOriginal);
-                mCallback.notifyDetectionFinished(imageProcessing, textDetector);
-            } else {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-                String currentDateandTime = sdf.format(new Date());
-                File file = new FileHandler().getAlbumPublicStorageDir(AppConstant.APP_NAME, "pictures");
-                //String fileName = file.getPath() + "/" + currentDateandTime + ".png";
-                //mOpenCvCameraView.takePicture(fileName, mCallbackPicture);
-                takePicture(currentDateandTime, file.getPath());
-            }
+            //textDetectionTask.cancel(true);
+            //textRecognitionTask.cancel(true);
+            mCallback.notifyDetectionFinished(imageProcessing, textDetector);
         } else {
             mStart = true;
             btn_tap2start.setVisibility(View.INVISIBLE);
@@ -409,20 +401,17 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         protected Boolean doInBackground(Void... params) {
             //Deteccion de texto (nativo c++)
             try {
-                isBusy = true;
+                //isBusy = true;
                 Mat img = mRgba.clone();
-
-                //textDetector = mCallback.getDetectTextObject();
-                //textDetector.detect(mRgba.getNativeObjAddr());
 
                 textDetector.detect(img.getNativeObjAddr());
                 boxes = textDetector.getBoundingBoxes();
 
                 imageProcessing.setMat(img);
-                Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
+                //Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
                 //OCR
-                words = imageProcessing.readPatches(boundingBoxes, lang_read);
-                isBusy = false;
+                //words = imageProcessing.readPatches(boundingBoxes, ocr);
+                //isBusy = false;
             } catch (Exception e){
                 Log.e(TAG, "Error en la detección");
                 Log.e(TAG, e.getLocalizedMessage());
@@ -435,6 +424,36 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         @Override
         protected void onPostExecute(Boolean finished) {
             mDetectionFinished = finished;
+            textRecognitionTask = new TextRecognitionTask();
+            textRecognitionTask.execute();
+        }
+    }
+
+    public class TextRecognitionTask extends AsyncTask<Void, Integer, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            //Deteccion de texto (nativo c++)
+            try {
+                isBusy = true;
+
+                Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
+                //OCR
+                words = imageProcessing.readPatches(boundingBoxes, ocr);
+                isBusy = false;
+            } catch (Exception e){
+                Log.e(TAG, "Error en la detección");
+                Log.e(TAG, e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean finished) {
+            mRecognitionFinished = finished;
+            mCallback.notifyDetectionFinished(imageProcessing, textDetector);
         }
     }
 }

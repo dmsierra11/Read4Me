@@ -47,4 +47,6 @@
     <string name="lang2read">Language to read</string>
     <string name="lang2hear">Language to hear</string>
     <string name="change_lang">Change languages</string>
+    <string name="rotate_pic">Rotate</string>
+    <string name="no_internet">No internet connection</string>
 </resources>

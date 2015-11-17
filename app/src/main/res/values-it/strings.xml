@@ -43,4 +43,6 @@
     <string name="lang2read">Lingua a leggere </string>
     <string name="lang2hear">Lingua di sentire </string>
     <string name="change_lang">lingue di cambiamento</string>
+    <string name="rotate_pic">Ruota</string>
+    <string name="no_internet">Nessun collegamento a Internet</string>
 </resources>

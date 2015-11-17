@@ -43,4 +43,6 @@
     <string name="title_activity_show_pic">Foto</string>
     <string name="change_lang">Cambiar idiomas</string>
     <string name="title_activity_color_detect">Detección en Tiempo Real</string>
+    <string name="rotate_pic">Rotar</string>
+    <string name="no_internet">No hay conexión a internet</string>
 </resources>

@@ -149,7 +149,8 @@ public class OCRFragment extends Fragment {
             ImageProcessing imageProcessing = mCallback.getImageProcObject();
 
             String text = imageProcessing.getText();
-            if (textDetector == null)
+            //if (textDetector == null)
+            if (text == "")
                 text = imageProcessing.processDocument(lang_read);
 
             /*else {
@@ -183,8 +184,14 @@ public class OCRFragment extends Fragment {
 
             String lang_readISO3 = convertISO3ToNormal(lang_read);
             if (!lang_readISO3.equals(lang_hear)){
-                GoogleTranslate translator = new GoogleTranslate("AIzaSyCKBRreFjCI4diZxOl1NB_LwVO6HR5Uelc");
-                text = translator.translate(text, lang_readISO3, lang_hear);
+                try {
+                    GoogleTranslate translator = new GoogleTranslate("AIzaSyCKBRreFjCI4diZxOl1NB_LwVO6HR5Uelc");
+                    text = translator.translate(text, lang_readISO3, lang_hear);
+                } catch (Exception ex){
+                    text = getString(R.string.no_internet);
+                    ex.printStackTrace();
+                }
+
             }
 
             return text;
