@@ -44,6 +44,6 @@ public class DetectTextNative {
         detect(detectPtr, matAddress);
     }
 
-    public void read(String lang){  read(detectPtr, lang); }
+    //public void read(String lang){  read(detectPtr, lang); }
 
 }

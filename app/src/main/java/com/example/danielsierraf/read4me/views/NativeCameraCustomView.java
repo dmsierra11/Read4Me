@@ -69,15 +69,6 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
     }
 
     public void setResolution(Size resolution) {
-        Camera.Parameters params = mCamera.getParameters();
-        List<Size> supported_sizes = params.getSupportedPreviewSizes();
-        List<String> sizes = new ArrayList<>();
-        for (Size size: supported_sizes){
-            String preview_size = size.width+"x"+size.height;
-            sizes.add(preview_size);
-        }
-        Log.d(TAG, "Supported preview sizes: " + Arrays.toString(sizes.toArray()));
-
         disconnectCamera();
         mMaxHeight = resolution.height;
         mMaxWidth = resolution.width;

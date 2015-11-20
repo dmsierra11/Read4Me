@@ -17,7 +17,9 @@ import android.widget.ImageView;
 
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.activities.MenuActivity;
+import com.example.danielsierraf.read4me.classes.ImageProcessing;
 import com.example.danielsierraf.read4me.interfaces.CustomCameraInterface;
+import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
 
 /**
  * Created by danielsierraf on 8/21/15.
@@ -28,15 +30,16 @@ public class PhotoPreviewFragment extends Fragment {
 
     private String photo_path;
     private Context mContext;
-    private CustomCameraInterface mCallback;
+    private CustomCameraInterface mCallbackCamera;
+    private ImageProcessingInterface mCallback;
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
         mContext = activity.getApplicationContext();
-        mCallback = (CustomCameraInterface) activity;
-
+        mCallback = (ImageProcessingInterface) activity;
+        mCallbackCamera = (CustomCameraInterface) activity;
         Bundle args_ = getArguments();
         photo_path = args_.getString("photo_path");
 
@@ -56,27 +59,39 @@ public class PhotoPreviewFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        final ImageProcessing imageProcessing = mCallback.getImageProcObject();
 
-        Button btn_done = (Button) getActivity().findViewById(R.id.btn_pic_done);
-        btn_done.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, MenuActivity.class);
-                startActivity(intent);
-            }
-        });
+        ImageView image = (ImageView) getActivity().findViewById(R.id.preview_image);
+        //Log.d(TAG, "Image: "+photo_path);
+        //image.setImageURI(Uri.parse(photo_path));
+        image.setImageBitmap(imageProcessing.getMatBitmap());
 
         Button btn_retake = (Button) getActivity().findViewById(R.id.btn_take_another);
         btn_retake.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCallback.retake();
+                mCallbackCamera.retake();
             }
         });
 
-        ImageView image = (ImageView) getActivity().findViewById(R.id.preview_image);
-        Log.d(TAG, "Image: "+photo_path);
-        image.setImageURI(Uri.parse(photo_path));
+        Button btn_done = (Button) getActivity().findViewById(R.id.btn_pic_done);
+        btn_done.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageProcessing.writeImage(photo_path);
+                Intent intent = new Intent(mContext, MenuActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        Button btn_save = (Button) getActivity().findViewById(R.id.btn_save_and_take);
+        btn_save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageProcessing.writeImage(photo_path);
+                mCallbackCamera.retake();
+            }
+        });
     }
 
     @Override

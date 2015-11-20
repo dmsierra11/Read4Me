@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Date;
 
 import com.example.danielsierraf.read4me.utils.AppConstant;
 import com.googlecode.tesseract.android.TessBaseAPI;
@@ -70,55 +71,33 @@ public class OCR {
     }
 
     public String recognizeText(Bitmap bitmap){
-        /*try {
-            Log.d(TAG, "Before baseApi");
-
-            TessBaseAPI baseApi = new TessBaseAPI();
-            baseApi.setDebug(true);
-            //baseApi.init(DATA_PATH, lang, 2);
-            baseApi.init(DATA_PATH, lang);
-            //set whitelist
-            baseApi.setPageSegMode(TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED);
-            baseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK);
-            baseApi.setImage(bitmap);
-
-            recognizedText = baseApi.getUTF8Text();
-            Log.d(TAG, "RECOGNIZED TEXT: "+recognizedText);
-            //spell check
-            String[] tmp = recognizedText.split(" ");
-            Log.d(TAG, "Words: "+Arrays.toString(tmp));
-            for (int i = 0; i < tmp.length; i++){
-                Log.d(TAG, "Spell checking: "+tmp[i]);
-                String word = spellCheck(tmp[i], 0);
-                Log.d(TAG, "RECOGNIZED TEXT FILTERED: "+word);
-                output += word;
-            }
-
-            baseApi.end();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            Log.e(TAG, ex.getMessage());
-            // TODO: handle exception
-        }*/
-
-        String recognizedText = "";
+        String recognizedText;
         String output = "";
 
         try {
+            Date dateSOCR = new Date();
             baseApi.setImage(bitmap);
 
+            //OCR
             recognizedText = baseApi.getUTF8Text();
             Log.d(TAG, "RECOGNIZED TEXT: "+recognizedText);
-            //spell check
+            Date dateFOCR = new Date();
+            long timeOCR = dateFOCR.getTime() - dateSOCR.getTime();
+            Log.d(AppConstant.TAG_TIME_ELAPSED, "Time OCR: "+timeOCR);
+
+            //Spell check
+            Date dateSSpellcheck = new Date();
             String[] tmp = recognizedText.split(" ");
-            Log.d(TAG, "Words: "+Arrays.toString(tmp));
             for (int i = 0; i < tmp.length; i++){
                 Log.d(TAG, "Spell checking: "+tmp[i]);
                 String word = spellCheck(tmp[i], 0);
                 Log.d(TAG, "RECOGNIZED TEXT FILTERED: "+word);
                 output += word;
             }
-            //output = recognizedText;
+            Date dateFSpellcheck = new Date();
+            long timeSpellcheck = dateFSpellcheck.getTime() - dateSSpellcheck.getTime();
+            Log.d(AppConstant.TAG_TIME_ELAPSED, "Time spellcheck: "+timeSpellcheck);
+
         } catch (Exception ex) {
             ex.printStackTrace();
             Log.e(TAG, ex.getMessage());

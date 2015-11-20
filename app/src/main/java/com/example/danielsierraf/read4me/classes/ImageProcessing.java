@@ -97,13 +97,6 @@ public class ImageProcessing implements Serializable{
         return output_text;
     }
 
-    public Mat convertBitmapToMat(Bitmap bmp){
-        Mat img = new Mat();
-        Utils.bitmapToMat(bmp, img);
-        writeImage("bitmapToMat", AppConstant.TEST_PATH, img);
-        return img;
-    }
-
     public Bitmap getMatBitmap(Mat img){
         Log.d(TAG, "Creating bitmap");
         Bitmap bmp = null;
@@ -113,6 +106,29 @@ public class ImageProcessing implements Serializable{
             Log.d(TAG, "Seteo Bitmap " + bmp.toString());
         }
         return bmp;
+    }
+
+    public Bitmap getMatBitmap(){
+        Mat img = src.clone();
+        Log.d(TAG, "Creating bitmap");
+        Bitmap bmp = null;
+        if (img != null && !img.empty()){
+            bmp = Bitmap.createBitmap(img.cols(), img.rows(),Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(img, bmp);
+            Log.d(TAG, "Seteo Bitmap " + bmp.toString());
+        }
+        return bmp;
+    }
+
+    public Mat convertBitmapToMat(Bitmap bmp){
+        Mat img = new Mat();
+        Utils.bitmapToMat(bmp, img);
+        writeImage("bitmapToMat", AppConstant.TEST_PATH, img);
+        return img;
+    }
+
+    public void convertRGBA2BGRA(){
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGBA2BGRA);
     }
 
     //Preprocessing
@@ -147,6 +163,24 @@ public class ImageProcessing implements Serializable{
 
         Boolean bool = null;
         filename = file.toString();
+        bool = Highgui.imwrite(filename, src);
+
+        if (bool == true)
+            Log.d(TAG, "SUCCESS segment image to external storage on "+filename);
+        else {
+            Log.d(TAG, "Fail writing image to external storage");
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean writeImage(String path){
+        File file = new File(path);
+
+        Boolean bool = null;
+        String filename = file.toString();
+        convertRGBA2BGRA();
         bool = Highgui.imwrite(filename, src);
 
         if (bool == true)
@@ -243,43 +277,33 @@ public class ImageProcessing implements Serializable{
 
     public Word[] readPatches(Rect[] boundingBoxes, OCR ocr){
         Log.d(TAG, "Reading "+boundingBoxes.length+ "boxes");
-        //String text = "";
-        //output_text = "";
+
         ArrayList<Word> wordsList = new ArrayList<Word>();
-        //OCR ocr = new OCR(lang_read);
+
         for (int i=0; i < boundingBoxes.length; i++){
             Rect box = boundingBoxes[i];
             Mat ROI = src.submat(box.y, box.y + box.height, box.x, box.x + box.width);
             //Log.d(TAG, "Segmented "+i+" COLS: "+ROI.cols()+" ROWS: "+ROI.rows());
             ROI = otsuThreshold(ROI);
             //Log.d(TAG, "Thresholded");
-            //Mat filtered = MorphologyTransformation(ROI);
-
+            Mat filtered = MorphologyTransformation(ROI);
             //Log.d(TAG, "Morphology transformed");
 
-            /*if (MainActivity.TEST_MODE) {
+            if (MainActivity.TEST_MODE) {
                 Log.d(TAG, "Writing segment.." + i);
                 Log.d(TAG, "Size patch: "+filtered.cols()+"x"+filtered.rows());
                 writeSegment(filtered, "" + i);
-            }*/
+            }
 
             //OCR
-            //Bitmap bmp = getMatBitmap(filtered);
-            Bitmap bmp = getMatBitmap(ROI);
+            Bitmap bmp = getMatBitmap(filtered);
+            //Bitmap bmp = getMatBitmap(ROI);
 
             String output = ocr.recognizeText(bmp);
 
             Word word = new Word(output, box);
             wordsList.add(word);
-            //output_text = output_text + output + " ";
-            //Log.d(TAG, "Text: "+output_text);
         }
-
-        //ocr.finalize();
-
-        /*if (MainActivity.TEST_MODE){
-            writeImage("original");
-        }*/
 
         words = new Word[wordsList.size()];
         words = wordsList.toArray(words);

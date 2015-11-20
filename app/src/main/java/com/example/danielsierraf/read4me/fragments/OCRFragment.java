@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,23 +13,20 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.danielsierraf.read4me.R;
 import com.example.danielsierraf.read4me.activities.MainActivity;
-import com.example.danielsierraf.read4me.classes.DetectTextNative;
 import com.example.danielsierraf.read4me.classes.GoogleTranslate;
+import com.example.danielsierraf.read4me.utils.AppConstant;
 import com.example.danielsierraf.read4me.utils.FileHandler;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
 import com.example.danielsierraf.read4me.utils.Read4MeApp;
 
-import org.opencv.core.Rect;
-
-import java.util.zip.Inflater;
+import java.util.Date;
 
 /**
  * Created by danielsierraf on 8/7/15.
@@ -38,15 +34,10 @@ import java.util.zip.Inflater;
 public class OCRFragment extends Fragment {
 
     private final String TAG = "OCRFragment";
-    private final String appName = "Read4Me";
 
     private Context mContext;
-    //private String lang_read;
-    //private DetectTextNative textDetector;
-    //private ImageProcessing imageProcessing;
     private ScrollView scrollView;
     private TextView textView;
-    //private ImageView imageView;
     private ProgressBar progressBar;
     private String message;
     private ImageProcessingInterface mCallback;
@@ -75,9 +66,6 @@ public class OCRFragment extends Fragment {
         setRetainInstance(true);
         setHasOptionsMenu(true);
 
-        //ImageProcessing imageProcessing = ImageProcessor.getImageProcessing();
-        //this.imageProcessing = imageProcessing;
-
         OCReader ocrRead = new OCReader();
         ocrRead.execute();
     }
@@ -98,7 +86,6 @@ public class OCRFragment extends Fragment {
         scrollView = (ScrollView) getActivity().findViewById(R.id.scrollView);
         scrollView.setEnabled(false);
         textView = (TextView) getActivity().findViewById(R.id.ocr_text);
-        //imageView = (ImageView) getActivity().findViewById(R.id.ocr_image);
         progressBar = (ProgressBar) getActivity().findViewById(R.id.progressBarTTS);
         progressBar.setVisibility(ProgressBar.VISIBLE);
     }
@@ -108,7 +95,6 @@ public class OCRFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mCallback = null;
-        //textDetector = null;
         //imageProcessing = null;
     }
 
@@ -145,48 +131,23 @@ public class OCRFragment extends Fragment {
             /*String path = new FileHandler().getExternalStorageDir(appName).getPath()+
                     "/neural_networks/SVM.xml";*/
 
-            DetectTextNative textDetector = mCallback.getDetectTextObject();
+            //DetectTextNative textDetector = mCallback.getDetectTextObject();
             ImageProcessing imageProcessing = mCallback.getImageProcObject();
 
             String text = imageProcessing.getText();
-            //if (textDetector == null)
             if (text == "")
                 text = imageProcessing.processDocument(lang_read);
-
-            /*else {
-                int[] boundBoxes = textDetector.getBoundingBoxes();
-
-                if (boundBoxes != null){
-                    int numBoxes = textDetector.getBoundingBoxes().length/4;
-                    Log.d(TAG, "Filtering "+numBoxes+" boxes");
-                } else {
-                    Log.d(TAG, "No bounding boxes");
-                }
-
-                textDetector.read(path);
-                int[] boxes = textDetector.getBoxesWords();
-
-                //finalizar detecccion
-                Log.d(TAG, "Finalizando deteccion");
-                try {
-                    textDetector.finalize();
-                } catch (Throwable throwable) {
-                    Log.e(TAG, "Error finalizando");
-                    throwable.printStackTrace();
-                }
-                Log.d(TAG, "Deteccion finalizada");
-
-                //show bounding boxes
-                Rect[] boundingBoxes = imageProcessing.getBoundingBoxes(boxes);
-                //OCR
-                text = imageProcessing.readPatches(boundingBoxes, lang_read);
-            }*/
 
             String lang_readISO3 = convertISO3ToNormal(lang_read);
             if (!lang_readISO3.equals(lang_hear)){
                 try {
+                    Date dateSTranslation = new Date();
+                    //translation
                     GoogleTranslate translator = new GoogleTranslate("AIzaSyCKBRreFjCI4diZxOl1NB_LwVO6HR5Uelc");
                     text = translator.translate(text, lang_readISO3, lang_hear);
+                    Date dateFTranslation = new Date();
+                    long timeTranslation = dateFTranslation.getTime() - dateSTranslation.getTime();
+                    Log.d(AppConstant.TAG_TIME_ELAPSED, "Time translation: "+timeTranslation);
                 } catch (Exception ex){
                     text = getString(R.string.no_internet);
                     ex.printStackTrace();
@@ -204,7 +165,6 @@ public class OCRFragment extends Fragment {
             scrollView.setEnabled(true);
             progressBar.setVisibility(ProgressBar.INVISIBLE);
             textView.setText(message);
-            //imageView.setImageBitmap(imageProcessing.getMatBitmap());
             mCallback.notifyOCRFinished(text);
         }
     }

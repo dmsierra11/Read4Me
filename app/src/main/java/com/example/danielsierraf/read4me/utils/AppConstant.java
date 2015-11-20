@@ -9,6 +9,8 @@ import java.util.List;
  * Created by danielsierraf on 8/15/15.
  */
 public class AppConstant {
+    public static final String TAG_TIME_ELAPSED = "Time";
+
     // Number of columns of Grid View
     public static final int NUM_OF_COLUMNS = 3;
 

@@ -200,40 +200,27 @@ void DetectText::pipeline(int blackWhite) {
     start_time = clock();
     Mat swtmap(image_.size(), CV_32FC1, Scalar(initialStrokeWidth_));
     strokeWidthTransform(image_, swtmap, blackWhite);
-    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    //cout << time_in_seconds << "s in strokeWidthTransform" << endl;
     
     start_time = clock();
     Mat ccmap(image_.size(), CV_32FC1, Scalar(-1));
     componentsRoi_.clear();
     nComponent_ = connectComponentAnalysis(swtmap, ccmap);
-    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    //cout << time_in_seconds << "s in connectComponentAnalysis" << endl;
     
     start_time = clock();
     identifyLetters(swtmap, ccmap);
-    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    //cout << time_in_seconds << "s in identifyLetters" << endl;
     
     start_time = clock();
     groupLetters(swtmap, ccmap);
-    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    //cout << time_in_seconds << "s in groupLetters" << endl;
     
     start_time = clock();
     chainPairs(ccmap);
-    //time_in_seconds = (clock() - start_time) / (double) CLOCKS_PER_SEC;
-    //cout << time_in_seconds << "s in chainPairs" << endl;
 
-    showEdgeMap();
-    showSwtmap(swtmap);
-    showCcmap(ccmap);
-    showLetterGroup();
-    //showLetterDetection();
+    //showEdgeMap();
+    //showSwtmap(swtmap);
+    //showCcmap(ccmap);
+    //showLetterGroup();
     
     disposal();
-    //cout << "finish clean up" << endl;
-    
 }
 
 void DetectText::strokeWidthTransform(const Mat& image, Mat& swtmap,
@@ -780,59 +767,6 @@ void DetectText::overlapBoundingBoxes(vector<Rect>& boundingBoxes) {
     boundingBoxes = bigBoxes;
 }
 
-void DetectText::overlayText(vector<Rect>& box, vector<string>& text) {
-    //detection_ = originalImage_.clone();
-    
-    assert(box.size() == text.size());
-    Scalar color(0, 255, 0);
-    size_t lineWidth = 25;
-    int indent = 50;
-    int count = 1;
-    for (size_t i = 0; i < box.size(); i++) {
-        if (count > 9)
-            indent = 70;
-        string output = text[i];
-        if (output.compare("") == 0)
-            continue;
-        std::string s;
-        std::stringstream out;
-        //out << count;
-        out << output;
-        count++;
-        //string prefix = "[";
-        //prefix = prefix + out.str() + "]";
-        string prefix = output;
-        
-        int offset = 10;
-        putText(detection_, prefix,
-                Point(box[i].x + offset, box[i].y + box[i].height + offset),
-                FONT_HERSHEY_DUPLEX, 1, color, 2);
-        
-        
-        /*putText(detection_, prefix,
-                Point(box[i].x + box[i].width, box[i].y + box[i].height),
-                FONT_HERSHEY_DUPLEX, 1, color, 2);*/
-        /*putText(detection_, prefix, Point(image_.cols, textDisplayOffset_ * 35),
-                FONT_HERSHEY_DUPLEX, 1, color, 2);
-        while (output.length() > lineWidth) {
-            putText(detection_, output.substr(0, lineWidth),
-                    Point(image_.cols + indent, textDisplayOffset_ * 35),
-                    FONT_HERSHEY_DUPLEX, 1, color, 2);
-            output = output.substr(lineWidth);
-            textDisplayOffset_++;
-        }
-        putText(detection_, output,
-                Point(image_.cols + indent, textDisplayOffset_ * 35),
-                FONT_HERSHEY_DUPLEX, 1, color, 2);*/
-        textDisplayOffset_ += 2;
-    }
-    
-    if (mode_ == IMAGE) {
-        imwrite("10."+outputPrefix_+"_text.png", detection_);
-    }
-    
-}
-
 Mat resizeImage(const Mat& patch, int height, int width, double scale){
     Mat resultResized;
     if (scale == 0) {
@@ -845,96 +779,6 @@ Mat resizeImage(const Mat& patch, int height, int width, double scale){
         resize(patch, resultResized, resultResized.size(), 0, 0, INTER_CUBIC);
     }
     return resultResized;
-}
-
-void DetectText::ocrRead(vector<Rect>& boundingBoxes) {
-    sort(boundingBoxes.begin(), boundingBoxes.end(), DetectText::spaticalOrder);
-    recognizedText_ = "";
-    for (size_t i = 0; i < boundingBoxes.size(); i++) {
-        string result;
-        stringstream ss;
-        string s;
-        ss << "patches/" << i;
-        //s = ss.str() + ".tiff";
-        s = ss.str() + ".png";
-        //float score = ocrRead(originalImage_(boundingBoxes[i]), result, s);
-        float score = ocrRead(image_(boundingBoxes[i]), result, s);
-        
-        //float score = 1;
-        //Mat imageFilter = filterPatch(image_(boundingBoxes[i]));
-        //imwrite(s, imageFilter);
-        
-        stringstream ss_word;
-        ss_word << "patches/" << i << ".txt";
-        //write2File(result, ss_word.str());
-        
-        recognizedText_ += result;
-
-        //if (score > 0) {
-            //boxesBothSides_.push_back(boundingBoxes[i]);
-            wordsBothSides_.push_back(result);
-            //boxesScores_.push_back(score);
-        //}
-    }
-    /*stringstream ss2;
-    ss2 << "patches/output.txt";
-    string name = ss2.str();
-    DetectText::write2File(result_concat, name);*/
-}
-
-float DetectText::ocrRead(const Mat& imagePatch, string& output, string name) {
-    cout << "Image patch rows: " << imagePatch.rows << endl;
-    if (imagePatch.rows < 50)
-    {
-        double scale = 1.5;
-        //resize(imagePatch, imagePatch, Size(0,0),
-        //scale, scale, INTER_LANCZOS4);
-        //imwrite(name, imagePatch);
-        Mat scaledImage = resizeImage(imagePatch, 0, 0, scale);
-        cout << "Resized patch: "<< scaledImage.cols << "x" << scaledImage.rows << endl;
-        return readPatch(scaledImage, output, name);
-    }
-
-    return readPatch(imagePatch, output, name);
-}
-
-float DetectText::readPatch(const Mat& imagePatch, string& output, string name){
-    float score = 0;
-    Mat imageFilter = filterPatch(imagePatch);
-    if (mode_ == IMAGE) {
-        imwrite(name, imageFilter);
-    }
-    
-    //basic
-    /*tesseract::TessBaseAPI tess;
-    tess.Init(NULL, lang_);
-    tess.SetImage((uchar*)imageFilter.data, imageFilter.size().width, imageFilter.size().height, imageFilter.channels(), imageFilter.step1());
-    //tess.Recognize(0);
-    char* out = tess.GetUTF8Text();
-    
-    //cout << "TESSERACT OUTPUT:  " << out << endl;
-    
-    string str(out);
-    string buf;
-    stringstream ss(str);
-    
-    vector<string> tokens;
-    
-    while (ss >> buf)
-    tokens.push_back(buf);
-    
-    for(std::vector<int>::size_type i = 0; i != tokens.size(); i++) {
-        string tempOutput;
-        //score += spellCheck(tokens[i], tempOutput, 1);
-        score += spellCheck(tokens[i], tempOutput, 2);
-        //score += spellCheck(tokens[i], tempOutput, 3);
-        output += tempOutput;
-    }*/
-    
-    //output = out;
-    //cout << "FINAL OUTPUT: " << output << endl;
-    
-    return score;
 }
 
 Mat DetectText::equalize(const Mat& patch){
@@ -968,7 +812,7 @@ vector<Mat> DetectText::segment(vector<Rect>& boundingBoxes){
     return segments;
 }
 
-void DetectText::applySVM(vector<Mat>& segments, String path){
+void DetectText::applySVM(vector<Mat>& segments, String path) {
     //SVM for each plate region to get valid car plates
     //Read file storage.
     FileStorage fs;
@@ -995,187 +839,23 @@ void DetectText::applySVM(vector<Mat>& segments, String path){
     //Classify words or no words
     vector<Rect> posible_regions = boundingBoxes_;
     sort(posible_regions.begin(), posible_regions.end(), DetectText::spaticalOrder);
-    for(int i=0; i< segments.size(); i++)
-    {
-        /*
+    for(int i=0; i< segments.size(); i++) {
         Mat img=segments[i];
         Mat p= img.reshape(1, 1);
         p.convertTo(p, CV_32FC1);
         
         int response = (int)svmClassifier.predict( p );
-        cout << "Response: " << response << endl;
 
-        //TODO: descomentar despues
-        if(response==1)*/
+        if(response==1)
             boxesBothSides_.push_back(posible_regions[i]);
-        //cout << "Number of words: " << boxesBothSides_.size() << endl;
     }
-}
-
-// two option: 1 for aspell, 2 for correlation edit distance
-// return the score for the input
-float DetectText::spellCheck(string& str, string& output, int method) {
-    //cout << "string: " << str << endl;
-    int letterCount = 0, errorCount = 0, lNoiseCount = 0, digitCount = 0;
-    string withoutStrangeMarks;
-    float score = 0;
-    str = trim(str);
-    for (size_t i = 0; i < str.length(); i++) {
-        //si es una letra
-        if (isupper(str[i]) || islower(str[i])) {
-            //se van limpiando símbolos que pueden haber sido confundidos con l, L, i o I
-            withoutStrangeMarks += str[i];
-            letterCount++;
-            if (str[i] == 'l' || str[i] == 'L' || str[i] == 'I')
-                lNoiseCount++;
-        } else if (isdigit(str[i])) {
-            digitCount++;
-            //	withoutStrangeMarks += str[i];
-        } else if (str[i] == '|' || str[i] == '/' || str[i] == '\\') {
-            //si es un símbolo como |, \ o \\ y esta al lado de un dígito, se asume que es un uno
-            if ((i && isdigit(str[i - 1]))
-                || ((i < str.length() - 1) && isdigit(str[i + 1]))) {
-                withoutStrangeMarks += '1';
-                str[i] = '1';
-                digitCount++;
-            } else {
-                withoutStrangeMarks += 'l';
-                errorCount++;
-                letterCount++;
-            }
-        } else if (str[i] == '[') {
-            withoutStrangeMarks += 'L';
-            errorCount++;
-            letterCount++;
-        } else if (str[i] == ']') {
-            withoutStrangeMarks += 'I';
-            errorCount++;
-            letterCount++;
-        } else {
-            str[i] = ' ';
-        }
-    }
-    
-    if (digitCount > 0 && letterCount == 0) {
-        if (digitCount <= 5)
-            output = str + " ";
-    } else if (letterCount < 2) {
-        if (result_ == FINE)
-            output = str + " ";
-    } else if ((errorCount + lNoiseCount) * 2 > letterCount) {
-        // do nothing
-    } else if (letterCount < static_cast<int>(str.length()) / 2) {
-        // don't show up garbbige
-    } else {
-         if (method == 1)
-         {
-         	const string command("echo " + withoutStrangeMarks +
-         			" | aspell -a >> output");
-         	int r = system(command.c_str());
-         	fstream fin("output");
-         	string result;
-         	int count = 0;
-        
-         	while (fin >> result)
-         	{
-         		if (count)
-         		{
-         			count ++;
-         			if (count >= 5)
-         			{
-         				output	+= result + " ";
-         			}
-         			if (count == 10)
-         			{
-         				if ((output)[output.length()-2]==',')
-         					((output)[output.length()-2]=' ');
-         				break;
-         			}
-         		}
-         		if (result[0] == '&')
-         		{
-         			count++;
-         			output += "{";
-         		}
-         		else if (result[0] == '*')
-         		{
-         			output += " " + str;
-         			break;
-         		}
-         	}
-         	if (count)
-         		output += "}";
-         	r = system("rm output");
-         }
-        
-        output += withoutStrangeMarks + " ";
-        
-        // dictionary search
-        /*if (method == 2) {
-            vector < Word > topk;
-            string nearestWord;
-            cout << "Without strange marks: " << withoutStrangeMarks << endl;
-            getTopkWords(withoutStrangeMarks, 3, topk);
-            if (result_ == COARSE) {
-                cout << "COARSE score: " << topk[0].score << " word: " << topk[0].word << endl;
-                cout << "COARSE score: " << topk[1].score << " word: " << topk[1].word << endl;
-                cout << "COARSE score: " << topk[2].score << " word: " << topk[2].word << endl;
-                
-                string topWord = topk[0].word;
-                output = topk[0].word + " ";
-                
-                if (topWord.length() < 3) {
-                    if (topk[0].score == 0)
-                        score++;
-                    else
-                        output = "";
-                } else if (topWord.length() < 6) {
-                    if (topk[0].score * 5 <= topWord.length())
-                        score++;
-                    else
-                        output = "";
-                } else {
-                    if (topk[0].score == 0)
-                        score = topWord.length() * 2;
-                    else if (topk[0].score <= topWord.length())
-                        score = topWord.length();
-                }
-            } else if (result_ == FINE) {
-                //cout << "FINE " << topk << endl;
-                cout << "FINE score: " << topk[0].score << " word: " << topk[0].word << endl;
-                if (topk[0].score == 0) {
-                    output = topk[0].word + " ";
-                    score += topk[0].word.length() * 2;
-                } else {
-                    output = "{" + withoutStrangeMarks + "->";
-                    // pick top 3 results
-                    for (int i = 0; i < 3; i++) {
-                        stringstream ss;
-                        ss << topk[i].score;
-                        string s = ss.str();
-                        output = output + topk[i].word + ":" + s + " ";
-                    }
-                    output += "} ";
-                }
-            }
-        }*/
-        
-    }
-    
-    return score;
 }
 
 Mat DetectText::filterPatch(const Mat& patch) {
     Mat result;
-    
-    //medianBlur( patch, patch, 5 );
-    //medianBlur( resultResized, resultResized, 5 );
-    
+
     //Binarisation
-    //FOR LIGHT BACKGROUND
     threshold(patch, patch, 0, 255, THRESH_BINARY | CV_THRESH_OTSU);
-    //FOR DARK BACKGROUND
-    //threshold(patch, patch, 0, 255, THRESH_BINARY_INV | CV_THRESH_OTSU);
     
     //Morphology transformation
     //MORPH_RECT
@@ -1189,13 +869,9 @@ Mat DetectText::filterPatch(const Mat& patch) {
     // Since MORPH_X : 2,3,4,5 and 6
     int operation = morph_operator + 2;
     /// Apply the specified morphology operation
-    
     morphologyEx( patch, patch, operation, element );
-    //morphologyEx( resultResized, resultResized, operation, element );
-    
-    //cout << "Image size: " << patch.cols << "x" << patch.rows << endl;
+
     result = patch;
-    //result = resultResized;
     return result;
 }
 
@@ -1214,61 +890,8 @@ void DetectText::disposal() {
 }
 
 /********************* helper functions ***************************/
-void DetectText::readLetterCorrelation(const char* file) {
-    ifstream fin(file);
-    correlation_ = Mat(62, 62, CV_32F, Scalar(0));
-    float number;
-    for (int i = 0; i < 62; i++)
-        for (int j = 0; j < 62; j++) {
-            assert(fin >> number);
-            correlation_.at<float>(i, j) = number;
-        }
-}
 
-void DetectText::readLetterCorrelation(int fd) {
-    FILE* fp = fdopen(fd, "r");
-    correlation_ = Mat(62, 62, CV_32F, Scalar(0));
-    float number;
-    for (int i = 0; i < 62; i++)
-        for (int j = 0; j < 62; j++) {
-            /*fscanf(fp, "%f", &number);
-            __android_log_print(ANDROID_LOG_VERBOSE, "DetectText",
-                                "Correlation floats : %lf", number);*/
-            correlation_.at<float>(i, j) = number;
-        }
-}
-
-void DetectText::readWordList(const char* filename) {
-    ifstream fin(filename);
-    string word;
-    wordList_.clear();
-    while (fin >> word) {
-        wordList_.push_back(word);
-    }
-    assert(wordList_.size());
-    cout << "read in " << wordList_.size() << " words from " << string(filename)
-    << endl;
-}
-
-void DetectText::readWordList(int fd) {
-    FILE* fp = fdopen(fd, "r");
-    //	__android_log_print(ANDROID_LOG_VERBOSE, "DetectText", "Dictionary : %p", fp);
-    char word[256];
-    wordList_.clear();
-    //while(fscanf(fp, "%s", word))
-    for (int i = 0; i < 280354; i++) {
-        //fscanf(fp, "%s", &word);
-        cout << "Word: " << &word;
-        //__android_log_print(ANDROID_LOG_VERBOSE, "DetectText", "Dictionary : %s", word);
-        wordList_.push_back(string(word));
-    }
-    //	assert(wordList_.size());
-    //	cout << "read in " <<  wordList_.size() << " words from "
-    //			<< string(filename) << endl;
-}
-
-string&
-DetectText::trim(string& str) {
+string& DetectText::trim(string& str) {
     // Trim Both leading and trailing spaces
     
     // Find the first character position after
@@ -1282,61 +905,6 @@ DetectText::trim(string& str) {
     else
         str = str.substr(startpos, endpos - startpos + 1);
     return str;
-}
-
-void DetectText::getNearestWord(const string& str, string& nearestWord) {
-    cout << "start searching match for " << str << endl;
-    float score, lowestScore = 100;
-    int referenceScore;
-    size_t index = 0;
-    for (size_t i = 0; i < wordList_.size(); ++i) {
-        cout << "matching...." << wordList_[i];
-        score = editDistanceFont(str, wordList_[i]);
-        referenceScore = editDistance(str, wordList_[i]);
-        cout << " " << score << " " << referenceScore << endl;
-        if (score < lowestScore) {
-            lowestScore = score;
-            cout << "AHA! better!" << endl;
-            index = i;
-        }
-    }
-    nearestWord = wordList_[index];
-    cout << nearestWord << " got the lowest score: " << lowestScore << endl;
-}
-
-void DetectText::getTopkWords(const string& str, const int k,
-                              vector<Word>& words) {
-    float score, lowestScore = 100;
-    words.clear();
-    words.resize(k);
-    
-    for (size_t i = 0; i < wordList_.size(); i++) {
-        score = editDistanceFont(str, wordList_[i]);
-        if (score < lowestScore) {
-            Word w = Word(wordList_[i], score);
-            lowestScore = insertToList(words, w);
-        }
-    }
-}
-
-// return lowest score in the list
-float DetectText::insertToList(vector<Word>& words, Word& word) {
-    // first search for the position
-    size_t index = 0;
-    
-    for (size_t i = 0; i < words.size(); i++) {
-        index = i;
-        if (word.score < words[i].score) {
-            break;
-        }
-    }
-    if (index != words.size()) {
-        for (size_t i = words.size() - 1; i > index; i--) {
-            words[i] = words[i - 1];
-        }
-        words[index] = word;
-    }
-    return words[words.size() - 1].score;
 }
 
 /*--------------------------------------------------------*\
@@ -1398,36 +966,6 @@ void DetectText::showLetterGroup() {
         else
             imwrite("7."+outputPrefix_ + "_group2.png", output);
     }
-}
-
-void DetectText::showLetterDetection() {
-    Mat output = originalImage_.clone();
-    /*Scalar scalar;
-    if (firstPass_)
-        scalar = Scalar(0, 255, 0);
-    else
-        scalar = Scalar(0, 0, 255);*/
-    
-    for (size_t i = 0; i < nComponent_; ++i) {
-        if (isLetterComponects_[i]) {
-            Rect *itr = &componentsRoi_[i];
-            /*rectangle(output, Point(itr->x, itr->y),
-                      Point(itr->x + itr->width, itr->y + itr->height), scalar,
-                      2);*/
-            if (mode_ == IMAGE) {
-                stringstream ss;
-                string s;
-                ss << "tmpChars/" << i;
-                s = ss.str() + ".tiff";
-                //s = ss.str() + ".png";
-                imwrite(s, originalImage_(*itr));
-            }
-        }
-    }
-    /*if (firstPass_)
-        imwrite("8."+outputPrefix_ + "_letters1.jpg", output);
-    else
-        imwrite("9."+outputPrefix_ + "_letters2.jpg", output);*/
 }
 
 void DetectText::showBoundingBoxes(vector<Rect>& boundingBoxes) {
@@ -1604,184 +1142,4 @@ void DetectText::merge(const vector<int>& token, vector<int>& chain) {
             chain.push_back(token[i]);
         }
     }
-}
-
-// use correlation as indicator of distance
-float DetectText::editDistanceFont(const string& s, const string& t) {
-    float penalty = 0.7;
-    
-    int n = s.length();
-    int m = t.length();
-    
-    if (n == 0)
-        return m;
-    if (m == 0)
-        return n;
-    
-    float **d = new float*[n + 1];
-    for (int i = 0; i < n + 1; i++) {
-        d[i] = new float[m + 1];
-        memset(d[i], 0, (m + 1) * sizeof(float));
-    }
-    
-    for (int i = 0; i < n + 1; i++)
-        d[i][0] = i;
-    for (int j = 0; j < m + 1; j++)
-        d[0][j] = j;
-    
-    for (int i = 1; i < n + 1; i++) {
-        char sc = s[i - 1];
-        for (int j = 1; j < m + 1; j++) {
-            float v = d[i - 1][j - 1];
-            if ((t[j - 1] != sc)) {
-                float correlate = correlation_.at<float>(
-                                                         getCorrelationIndex(t[j - 1]), getCorrelationIndex(sc));
-                v = v + 1 - correlate;
-            }
-            d[i][j] = min(min(d[i - 1][j] + penalty, d[i][j - 1] + penalty), v);
-        }
-    }
-    float result = d[n][m];
-    for (int i = 0; i < n + 1; i++)
-        delete[] d[i];
-    delete[] d;
-    return result;
-}
-
-// get index in correlation matrix for given char
-int DetectText::getCorrelationIndex(char letter) {
-    if (islower(letter)) {
-        return letter - 'a';
-    } else if (isupper(letter)) {
-        return letter - 'A' + 26;
-    } else if (isdigit(letter)) {
-        return letter - '0' + 52;
-    }
-    cout << "illigal letter: " << letter << endl;
-    assert(false);
-    return -1;
-}
-
-// regular editDistance
-int DetectText::editDistance(const string& s, const string& t) {
-    int n = s.length();
-    int m = t.length();
-    
-    if (n == 0)
-        return m;
-    if (m == 0)
-        return n;
-    
-    int **d = new int*[n + 1];
-    for (int i = 0; i < n + 1; i++) {
-        d[i] = new int[m + 1];
-        memset(d[i], 0, (m + 1) * sizeof(int));
-    }
-    
-    for (int i = 0; i < n + 1; i++)
-        d[i][0] = i;
-    for (int j = 0; j < m + 1; j++)
-        d[0][j] = j;
-    
-    for (int i = 1; i < n + 1; i++) {
-        char sc = s[i - 1];
-        for (int j = 1; j < m + 1; j++) {
-            int v = d[i - 1][j - 1];
-            if (t[j - 1] != sc)
-                v++;
-            d[i][j] = min(min(d[i - 1][j] + 1, d[i][j - 1] + 1), v);
-        }
-    }
-    return d[n][m];
-}
-
-/*void DetectText::write2File(string str, string name) {
-    
-    ofstream myfile (name);
-    if (myfile.is_open())
-    {
-        myfile << str << "\n";
-        myfile.close();
-    }
-    else cout << "Unable to open file";
-    //return 0;
-}*/
-
-/*------------- test functions-------------------*/
-void DetectText::testGetCorrelationIndex() {
-    assert(getCorrelationIndex('a') == 0);
-    assert(getCorrelationIndex('c') == 2);
-    assert(getCorrelationIndex('A') == 26);
-    assert(getCorrelationIndex('0') == 52);
-    assert(getCorrelationIndex('9') == 61);
-    cout << "pass getCorrelationIndex test" << endl;
-}
-
-void DetectText::testEditDistance() {
-    string a("hello");
-    string b("helo");
-    assert(editDistance(a, b) == 1);
-    string c("hello");
-    string d("xello");
-    cout << "distance betweeen " << c << " & " << d << ": "
-    << editDistance(c, d) << endl;
-    cout << "distance with font betweeen " << c << " & " << d << ":"
-    << editDistanceFont(c, d) << endl;
-}
-
-void DetectText::testInsertToList() {
-    vector < Word > list;
-    list.resize(10);
-    
-    for (int i = 0; i < 10; i++) {
-        float score = rand() % 50;
-        Word w = Word("", score);
-        insertToList(list, w);
-        for (size_t i = 0; i < 10; i++) {
-            cout << list[i].score << " <= ";
-        }
-        cout << endl;
-    }
-    
-}
-void DetectText::testMergePairs() {
-    int a[] = { 1, 2, 3 };
-    int b[] = { 2, 3, 9 };
-    int c[] = { 7, 5 };
-    int d[] = { 2, 4, 6 };
-    
-    vector < vector<int> > initialChain;
-    vector < vector<int> > outputChain;
-    vector<int> va(a, a + 3);
-    vector<int> vb(b, b + 3);
-    vector<int> vc(c, c + 2);
-    vector<int> vd(d, d + 3);
-    initialChain.push_back(va);
-    initialChain.push_back(vb);
-    initialChain.push_back(vc);
-    initialChain.push_back(vd);
-    
-    while (mergePairs(initialChain, outputChain)) {
-        initialChain = outputChain;
-        outputChain.clear();
-    }
-    
-    for (size_t i = 0; i < outputChain.size(); i++) {
-        for (size_t j = 0; j < outputChain[i].size(); j++) {
-            cout << outputChain[i][j] << " ";
-        }
-        cout << endl;
-    }
-    
-}
-
-void DetectText::testEdgePoints(vector<Point>& edgepoints) {
-    Mat temp(edgemap_.size(), CV_8UC1);
-    vector<Point>::iterator itr = edgepoints.begin();
-    for (; itr != edgepoints.end(); ++itr) {
-        temp.at<unsigned char>(*itr) = 255;
-    }
-    
-    imshow("test edge", temp);
-    waitKey();
 }
