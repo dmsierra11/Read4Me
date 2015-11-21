@@ -1,13 +1,12 @@
 package com.example.danielsierraf.read4me.classes;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.danielsierraf.read4me.activities.MainActivity;
 import com.example.danielsierraf.read4me.utils.AppConstant;
-import com.example.danielsierraf.read4me.utils.CustomUtils;
-import com.example.danielsierraf.read4me.utils.FileHandler;
+import com.example.danielsierraf.read4me.utils.Read4MeApp;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -30,9 +29,6 @@ public class ImageProcessing implements Serializable{
 
     public static final String TAG = "ImageProcessing";
     private static final Scalar TEXT_RECT_COLOR = new Scalar(0, 255, 0, 255);
-    //private static final Scalar TEXT_COLOR = new Scalar(0, 255, 255, 0);
-
-    //private Context mContext;
     private Mat src;
     private Word[] words;
 
@@ -40,23 +36,19 @@ public class ImageProcessing implements Serializable{
         System.loadLibrary("opencv_java");
     }
 
-    //private String output_text;
-
     //Constructors
-    public ImageProcessing(Context context){
-        //this.mContext = context;
+    public ImageProcessing(){
         src = new Mat();
         words = null;
     }
 
-    public ImageProcessing(Context context, String path){
-        //this.mContext = context;
+    public ImageProcessing(String path){
         src = Highgui.imread(path, 1);
         words = null;
         preprocess();
     }
 
-    public ImageProcessing(Context context, Bitmap bmp){
+    public ImageProcessing(Bitmap bmp){
         //this.mContext = context;
         //src = Highgui.imread(path, 1);
         src = convertBitmapToMat(bmp);
@@ -64,20 +56,9 @@ public class ImageProcessing implements Serializable{
         preprocess();
     }
 
-    public ImageProcessing(Context context, Mat img){
-        //this.mContext = context;
-        setMat(img);
-        words = null;
-    }
-
     //Setters
     public void setMat(Mat img) {
         src = img.clone();
-    }
-
-    public void setMat(String path) {
-        src = Highgui.imread(path, 1);
-        preprocess();
     }
 
     //Getters
@@ -153,24 +134,37 @@ public class ImageProcessing implements Serializable{
         //return src;
     }
 
+    private Mat resizeImage(Mat src, double scale ) {
+        Size size = new Size(0, 0); //the dst image size,e.g.100x100
+        //Mat dst = new Mat();
+        Log.d(TAG, "Image size: "+src.rows()+"x"+src.cols());
+        Imgproc.resize(src, src, size, scale, scale, Imgproc.INTER_LANCZOS4);//resize image
+        Log.d(TAG, "New image size: "+src.rows()+"x"+src.cols());
+        return src;
+    }
+
     //File handling
     public boolean writeImage(String filename, String path, Mat src){
-        //File pic_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         String ext = ".png";
         filename = filename+ext;
 
         File file = new File(path, filename);
 
-        Boolean bool = null;
-        filename = file.toString();
-        bool = Highgui.imwrite(filename, src);
-
-        if (bool == true)
-            Log.d(TAG, "SUCCESS segment image to external storage on "+filename);
-        else {
-            Log.d(TAG, "Fail writing image to external storage");
-            return false;
+//        Boolean bool = null;
+        try {
+            filename = file.toString();
+//        bool = Highgui.imwrite(filename, src);
+            Highgui.imwrite(filename, src);
+        } catch (Exception e){
+            Toast.makeText(Read4MeApp.getInstance(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+
+//        if (bool == true)
+//            Log.d(TAG, "SUCCESS segment image to external storage on "+filename);
+//        else {
+//            Log.d(TAG, "Fail writing image to external storage");
+//            return false;
+//        }
 
         return true;
     }
@@ -178,17 +172,22 @@ public class ImageProcessing implements Serializable{
     public boolean writeImage(String path){
         File file = new File(path);
 
-        Boolean bool = null;
-        String filename = file.toString();
-        convertRGBA2BGRA();
-        bool = Highgui.imwrite(filename, src);
-
-        if (bool == true)
-            Log.d(TAG, "SUCCESS segment image to external storage on "+filename);
-        else {
-            Log.d(TAG, "Fail writing image to external storage");
-            return false;
+//        Boolean bool = null;
+        try {
+            String filename = file.toString();
+            convertRGBA2BGRA();
+//            bool = Highgui.imwrite(filename, src);
+            Highgui.imwrite(filename, src);
+        } catch (Exception e){
+            Toast.makeText(Read4MeApp.getInstance(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+
+//        if (bool == true)
+//            Log.d(TAG, "SUCCESS segment image to external storage on "+filename);
+//        else {
+//            Log.d(TAG, "Fail writing image to external storage");
+//            return false;
+//        }
 
         return true;
     }

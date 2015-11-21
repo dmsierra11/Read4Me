@@ -1,25 +1,21 @@
 package com.example.danielsierraf.read4me.fragments;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.Fragment;
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
-//import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,13 +26,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.danielsierraf.read4me.R;
+import com.example.danielsierraf.read4me.activities.MainActivity;
 import com.example.danielsierraf.read4me.classes.OCR;
 import com.example.danielsierraf.read4me.classes.Word;
 import com.example.danielsierraf.read4me.utils.AppConstant;
 import com.example.danielsierraf.read4me.classes.DetectTextNative;
 import com.example.danielsierraf.read4me.utils.FileHandler;
 import com.example.danielsierraf.read4me.classes.ImageProcessing;
-import com.example.danielsierraf.read4me.interfaces.CustomCameraInterface;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
 import com.example.danielsierraf.read4me.utils.Read4MeApp;
 import com.example.danielsierraf.read4me.views.NativeCameraCustomView;
@@ -97,7 +93,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     private LinearLayout layoutOfPopup;
     private PopupWindow popupMessage;
     private Button popupButtonSave;
-    private boolean flashOn;
+    private boolean mflashOn;
 
     /**
      * called once the fragment is associated with its activity.
@@ -126,6 +122,8 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         imageProcessing = mCallback.getImageProcObject();
         mStart = false;
         mContext = Read4MeApp.getInstance();
+        lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
+        ocr = new OCR(lang_read);
     }
 
     /**
@@ -206,13 +204,13 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         textDetector = null;
         imageProcessing = null;
         mContext = null;
+        ocr.finalize();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
     }
-
 
     @Override
     public void onCameraViewStarted(int width, int height) {
@@ -222,27 +220,13 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         mDetectionFinished = true;
         boxes = null;
         words = null;
-        lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
-        ocr = new OCR(lang_read);
-
-
-//        if (mOpenCvCameraView.isPictureSizeSupported())
-//            mOpenCvCameraView.setPictureSize();
+//        lang_read = FileHandler.getDefaults(mContext.getString(R.string.lang_read), mContext);
+//        ocr = new OCR(lang_read);
 
         //Set biggest size
         List<Camera.Size> sizes = mOpenCvCameraView.getResolutionList();
         mOpenCvCameraView.setResolution(sizes.get(0));
         Camera.Size new_resolution = mOpenCvCameraView.getResolution();
-
-        flashOn = false;
-        /*if (mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
-            mOpenCvCameraView.setFlash();
-            flashOn = false;
-        }
-        else{
-            Log.e(TAG, "Flash not available");
-            flash = "Not available";
-        }*/
 
         String focusMode = "disabled";
         if(mOpenCvCameraView.isFocusModeSupported()){
@@ -253,17 +237,15 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
             mOpenCvCameraView.setFocusMode(focusMode);
         } else Log.e(TAG, "Focus mode not supported");
 
-        String flash = (flashOn)? "On": "Off";
         Toast.makeText(mContext, new_resolution.width+"x"+new_resolution.height +
-                        ", Focus mode: "+focusMode + ", Flash: "+flash,
-                Toast.LENGTH_SHORT).show();
+                        ", Focus mode: "+focusMode, Toast.LENGTH_SHORT).show();
 
     }
 
     @Override
     public void onCameraViewStopped() {
         mRgba.release();
-        ocr.finalize();
+//        ocr.finalize();
     }
 
     @Override
@@ -288,7 +270,7 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
                         //put text recognized on frame
                         Core.putText(mRgba, words[i].getText(), new Point(words[i].getBox().x + offset
                                         , words[i].getBox().y + words[i].getBox().height + offset),
-                                Core.FONT_HERSHEY_COMPLEX_SMALL, 1, TEXT_COLOR, 1);
+                                Core.FONT_HERSHEY_PLAIN, 1, TEXT_COLOR, 1);
                     } catch (Exception e){
                         Log.e(TAG, e.getLocalizedMessage());
                     }
@@ -354,6 +336,12 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_main, menu);
+
+        mflashOn = false;
+        String flashStatus = "Off";
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
+            flashStatus = "Not available";
+        menu.add("Flash: "+flashStatus);
         //List<String> effects = mOpenCvCameraView.getEffectList();
 
         /*if (effects == null) {
@@ -390,31 +378,45 @@ public class TextDetectionFragment extends Fragment implements View.OnTouchListe
         //return true;
     }
 
-    /*@Override
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
-        if (item.getGroupId() == 1)
-        {
-            mOpenCvCameraView.setEffect((String) item.getTitle());
-            Toast.makeText(mContext, mOpenCvCameraView.getEffect(), Toast.LENGTH_SHORT).show();
-        }
-        else if (item.getGroupId() == 2)
-        {
-            int id = item.getItemId();
-            Camera.Size resolution = mResolutionList.get(id);
-            mOpenCvCameraView.setResolution(resolution);
-            resolution = mOpenCvCameraView.getResolution();
-            String caption = Integer.valueOf(resolution.width).toString() + "x" + Integer.valueOf(resolution.height).toString();
-            Toast.makeText(mContext, caption, Toast.LENGTH_SHORT).show();
+        int id = item.getItemId();
+
+        if (id == 0){
+            if (mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
+                mflashOn = !mflashOn;
+                mOpenCvCameraView.setFlash(mflashOn);
+            } else {
+                Toast.makeText(mContext, "Flash not available", Toast.LENGTH_SHORT).show();
+            }
         }
 
-        return true;
-    }*/
+        if (id == R.id.action_change_langs) {
+            Intent intent = new Intent(mContext, MainActivity.class);
+            startActivity(intent);
+        }
+//        if (item.getGroupId() == 1)
+//        {
+//            mOpenCvCameraView.setEffect((String) item.getTitle());
+//            Toast.makeText(mContext, mOpenCvCameraView.getEffect(), Toast.LENGTH_SHORT).show();
+//        }
+//        else if (item.getGroupId() == 2)
+//        {
+//            int id = item.getItemId();
+//            Camera.Size resolution = mResolutionList.get(id);
+//            mOpenCvCameraView.setResolution(resolution);
+//            resolution = mOpenCvCameraView.getResolution();
+//            String caption = Integer.valueOf(resolution.width).toString() + "x" + Integer.valueOf(resolution.height).toString();
+//            Toast.makeText(mContext, caption, Toast.LENGTH_SHORT).show();
+//        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
     public void popupInit() {
-        popupButtonDiscard.setText("Discard");
-        popupButtonSave.setText("Save");
-        popupText.setText("This is Popup Window.press Discard to dismiss it.");
+        popupButtonDiscard.setText("Descartar");
+        popupButtonSave.setText("Aceptar");
+        popupText.setText("Aceptar resultado?");
         popupText.setPadding(0, 0, 0, 20);
         layoutOfPopup.setOrientation(LinearLayout.HORIZONTAL);
         layoutOfPopup.addView(popupText);

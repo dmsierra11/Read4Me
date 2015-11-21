@@ -29,6 +29,6 @@ public class AppConstant {
     public static final List<String> FILE_EXTN = Arrays.asList("jpg", "jpeg",
             "png");
 
-    public static final int SELECT_PICTURE = 1;
+//    public static final int SELECT_PICTURE = 1;
     public static final int REQUEST_IMAGE_CAPTURE = 2;
 }

@@ -96,11 +96,12 @@ public class NativeCameraCustomView extends JavaCameraView implements PictureCal
         return bestSize;
     }
 
-    public void setFlash(){
+    public void setFlash(boolean turnon){
         Camera.Parameters params = mCamera.getParameters();
-        params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        String flashStatus = (turnon)? Camera.Parameters.FLASH_MODE_TORCH:
+                Camera.Parameters.FLASH_MODE_OFF;
+        params.setFlashMode(flashStatus);
         mCamera.setParameters(params);
-        Log.d(TAG, "Flash on");
     }
 
     public void setPictureSize(){

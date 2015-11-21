@@ -21,6 +21,7 @@ import com.example.danielsierraf.read4me.fragments.PhotoPreviewFragment;
 import com.example.danielsierraf.read4me.fragments.TextDetectionFragment;
 import com.example.danielsierraf.read4me.interfaces.CustomCameraInterface;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
+import com.example.danielsierraf.read4me.utils.Read4MeApp;
 
 import java.util.Locale;
 
@@ -51,10 +52,11 @@ public class TextDetectionActivity extends Activity implements ImageProcessingIn
 
         setContentView(R.layout.main);
 
-        mContext = getApplicationContext();
+        mContext = Read4MeApp.getInstance();
         am = getAssets();
 
-        imageProcessing = new ImageProcessing(mContext);
+        //imageProcessing = new ImageProcessing(mContext);
+        imageProcessing = new ImageProcessing();
         textDetector = new DetectTextNative(am);
 
         Intent intent = getIntent();

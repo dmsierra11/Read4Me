@@ -119,7 +119,7 @@ public class EditPicFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 croppedImage = cropImageView.getCroppedImage();
-                ImageProcessing imageProcessing = new ImageProcessing(mContext, croppedImage);
+                ImageProcessing imageProcessing = new ImageProcessing(croppedImage);
                 mCallback.notifyDetectionFinished(imageProcessing, null);
                 //ImageView croppedImageView = (ImageView) getActivity().findViewById(R.id.croppedImageView);
                 //croppedImageView.setImageBitmap(croppedImage);

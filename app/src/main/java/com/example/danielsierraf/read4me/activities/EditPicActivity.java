@@ -23,6 +23,7 @@ import com.example.danielsierraf.read4me.fragments.EditPicFragment;
 import com.example.danielsierraf.read4me.fragments.OCRFragment;
 import com.example.danielsierraf.read4me.interfaces.ImageProcessingInterface;
 import com.example.danielsierraf.read4me.utils.CustomUtils;
+import com.example.danielsierraf.read4me.utils.Read4MeApp;
 
 import java.util.Locale;
 
@@ -40,7 +41,7 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
     //private final int PIC_EDIT = 1;
     private static final String TAG = "EditPicActivity";
 
-    private Uri mUri;
+//    private Uri mUri;
     private String mDataPath;
     private FragmentManager mFragmentManager;
     private AssetManager am;
@@ -60,31 +61,17 @@ public class EditPicActivity extends Activity implements TextToSpeech.OnInitList
         setContentView(R.layout.main);
 
         am = getAssets();
-        mContext = getApplicationContext();
+        mContext = Read4MeApp.getInstance();
 
         final Intent intent = getIntent();
-        //imageView = (ImageView) findViewById(R.id.img_to_edit);
         mDataPath = intent.getStringExtra(EXTRA_PHOTO_DATA_PATH);
-        //int action = intent.getIntExtra(EXTRA_ACTION, 1);
         picture = new CustomUtils(mContext).createBitmapFromPath(mDataPath);
 
-        //Log.d(TAG, "ACTION: " + action);
-
-        //mUri = Uri.parse(mDataPath);
-        //mUri = Uri.fromFile(new File(mDataPath));
-        //mUri = (action == 1) ? (Uri) intent.getParcelableExtra(EXTRA_PHOTO_URI) : null;
-
-        imageProcessing = new ImageProcessing(mContext, mDataPath);
+        imageProcessing = new ImageProcessing(mDataPath);
         detectText = new DetectTextNative(am);
-
-        /*Bundle args_ = new Bundle();
-        args_.putParcelable(EXTRA_PHOTO_URI, mUri);
-        args_.putString(EXTRA_PHOTO_DATA_PATH, mDataPath);
-        args_.putInt(EXTRA_ACTION, action);*/
 
         if (mEditPicFragment == null)
             mEditPicFragment = new EditPicFragment();
-        //mEditPicFragment.setArguments(args_);
 
         mFragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
