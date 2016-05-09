@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class MenuActivity extends Activity {
+public class MenuActivity extends AppCompatActivity {
 
     public static final int TAKE_PHOTO_ACTION = 1;
     public static final int REAL_TIME_ACTION = 2;

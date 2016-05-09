@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 /**
  * Created by danielsierraf on 8/15/15.
  */
-public class GridViewActivity extends Activity {
+public class GridViewActivity extends AppCompatActivity {
 
     private final String TAG = "GridViewActivity";
 

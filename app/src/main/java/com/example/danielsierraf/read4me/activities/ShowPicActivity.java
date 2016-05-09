@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.example.danielsierraf.read4me.R;
@@ -15,7 +16,7 @@ import com.example.danielsierraf.read4me.utils.CustomUtils;
 /**
  * Created by danielsierraf on 10/8/15.
  */
-public class ShowPicActivity extends Activity {
+public class ShowPicActivity extends AppCompatActivity {
 
     private static final String TAG = "ShowPicActivity";
 

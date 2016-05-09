@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,7 +26,7 @@ import com.example.danielsierraf.read4me.utils.Read4MeApp;
 
 import java.util.Locale;
 
-public class TextDetectionActivity extends Activity implements ImageProcessingInterface,
+public class TextDetectionActivity extends AppCompatActivity implements ImageProcessingInterface,
         TextToSpeech.OnInitListener, CustomCameraInterface{
     private static final String  TAG = "ColorDetectionActivity";
     private static final int MY_DATA_CHECK_CODE = 1234;

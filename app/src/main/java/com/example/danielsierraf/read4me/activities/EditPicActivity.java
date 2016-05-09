@@ -9,6 +9,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.net.Uri;
 import android.view.Menu;
@@ -28,7 +29,7 @@ import com.example.danielsierraf.read4me.utils.Read4MeApp;
 import java.util.Locale;
 
 
-public class EditPicActivity extends Activity implements TextToSpeech.OnInitListener,
+public class EditPicActivity extends AppCompatActivity implements TextToSpeech.OnInitListener,
         ImageProcessingInterface, EditPicFragment.PicEditor {
 
     //public static final String PHOTO_MIME_TYPE = "image/png";
